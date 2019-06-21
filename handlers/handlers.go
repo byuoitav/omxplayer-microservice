@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"testing/omxplayer/helpers"
+	"github.com/byuoitav/omxplayer-microservice/helpers"
 
 	"github.com/labstack/echo"
 )

@@ -2,7 +2,8 @@ package main
 
 import (
 	"net/http"
-	"testing/omxplayer/handlers"
+
+	"github.com/byuoitav/omxplayer-microservice/handlers"
 
 	"github.com/byuoitav/common"
 	"github.com/byuoitav/common/log"
