@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/byuoitav/omxplayer-microservice/helpers"
 
@@ -14,6 +15,10 @@ var omxPlayer *helpers.OMXPlayer
 //PlayStream ...
 func PlayStream(ctx echo.Context) error {
 	streamURL := ctx.Param("streamURL")
+	streamURL, err := url.QueryUnescape(streamURL)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
 	if omxPlayer == nil {
 		//make a new instance of the player
 		omxPlayer, err := helpers.StartOMX(streamURL)
