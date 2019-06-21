@@ -2,11 +2,11 @@ package main
 
 import (
 	"net/http"
+	"testing/omxplayer/handlers"
 
 	"github.com/byuoitav/common"
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/v2/auth"
-	"github.com/byuoitav/omxplayer-microservice/handlers"
 )
 
 func main() {
@@ -15,12 +15,11 @@ func main() {
 	router := common.NewRouter()
 
 	write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))
-	write.GET("/:address/stream/:streamURL", handlers.SwitchTheirStream)
-	write.GET("/stream/:streamURL", handlers.SwitchMyStream)
+	write.GET("/stream/:streamURL", handlers.PlayStream)
+	write.GET("/stream/stop", handlers.StopStream)
 
 	read := router.Group("", auth.AuthorizeRequest("read-state", "room", auth.LookupResourceFromAddress))
-	read.GET("/:address/stream", handlers.GetTheirStream)
-	read.GET("/stream", handlers.GetMyStream)
+	read.GET("/stream", handlers.GetStream)
 
 	router.PUT("/log-level/:level", log.SetLogLevel)
 	router.GET("/log-level", log.GetLogLevel)
