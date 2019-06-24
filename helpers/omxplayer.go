@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/godbus/dbus"
@@ -23,8 +24,13 @@ func (o *OMXPlayer) CanCommand() bool {
 	return o.IsReady
 }
 
-func (o *OMXPlayer) WaitForReady() {
-	for ; !o.IsReady; time.Sleep(100 * time.Millisecond) {
+func (o *OMXPlayer) WaitForReady() error {
+	for i := 0; !o.IsReady && i < 100; i++ {
 		o.CanCommand()
+		time.Sleep(50 * time.Millisecond)
 	}
+	if !o.IsReady {
+		return fmt.Errorf("Player media invalid")
+	}
+	return nil
 }

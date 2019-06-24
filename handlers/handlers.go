@@ -12,7 +12,7 @@ import (
 
 var omxPlayer *helpers.OMXPlayer
 
-//PlayStream ...
+//PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
 func PlayStream(ctx echo.Context) error {
 	streamURL := ctx.Param("streamURL")
 	streamURL, err := url.QueryUnescape(streamURL)
@@ -26,10 +26,18 @@ func PlayStream(ctx echo.Context) error {
 			//Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
-		omxPlayer.WaitForReady()
+		err = omxPlayer.WaitForReady()
+		if err != nil {
+			//Log error
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
 		return ctx.JSON(http.StatusOK, "Stream player started")
 	}
-	omxPlayer.WaitForReady()
+	err = omxPlayer.WaitForReady()
+	if err != nil {
+		//Log error
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
 	err = helpers.SwitchStream(omxPlayer.Connection, streamURL) //Todo: Check if the same stream is already playing
 	if err != nil {
 		//Log error
@@ -56,7 +64,7 @@ func StopStream(ctx echo.Context) error {
 func GetStream(ctx echo.Context) error {
 	//Check Player
 	if omxPlayer != nil && omxPlayer.CanCommand() {
-		streamURL, err := helpers.GetStream(omxPlayer.Connection)
+		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
 			//Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())

@@ -16,6 +16,7 @@ const (
 	envDbusPid     = "DBUS_SESSION_BUS_PID"
 )
 
+//StartOMX ...
 func StartOMX(streamURL string) (*OMXPlayer, error) {
 	err := runOmxplayer(streamURL)
 	if err != nil {
@@ -69,7 +70,7 @@ func readFile(path string) (string, error) {
 				return strings.TrimSpace(string(bytes)), err
 			}
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 	return "", fmt.Errorf("File %s is empty or does not exist", path)
 }
