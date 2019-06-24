@@ -23,18 +23,29 @@ func PlayStream(ctx echo.Context) error {
 		//make a new instance of the player
 		omxPlayer, err = helpers.StartOMX(streamURL)
 		if err != nil {
+			omxPlayer = nil
 			//Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		err = omxPlayer.WaitForReady()
 		if err != nil {
+			omxPlayer = nil
 			//Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, "Stream player started")
 	}
 	err = omxPlayer.WaitForReady()
-	if err != nil {
+	if err != nil { // The stream is invalid. The player needs to stop.
+
+		//Stop the stream player?
+		err = helpers.StopStream(omxPlayer.Connection)
+		if err != nil {
+			//Log error
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+		omxPlayer = nil
+
 		//Log error
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}

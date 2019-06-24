@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	envDbusAddress = "DBUS_SESSION_BUS_ADDRESS"
-	envDbusPid     = "DBUS_SESSION_BUS_PID"
+	envDbusAddress  = "DBUS_SESSION_BUS_ADDRESS"
+	envDbusPid      = "DBUS_SESSION_BUS_PID"
+	dbusAddressFile = "/tmp/omxplayerdbus.pi"
+	dbusIDFile      = "/tmp/omxplayerdbus.pi.pid"
 )
 
 //StartOMX ...
@@ -46,16 +48,22 @@ func runOmxplayer(stream string) error {
 }
 
 func setEnvironmentVariables() error {
-	dbusAddress, err := readFile("/tmp/omxplayerdbus.pi") // Todo: set as constants
+	dbusAddress, err := readFile(dbusAddressFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error when reading dbus address | %s", err.Error())
 	}
-	os.Setenv(envDbusAddress, dbusAddress)
-	dbusID, err := readFile("/tmp/omxplayerdbus.pi.pid") // Todo: set as constant
+	err = os.Setenv(envDbusAddress, dbusAddress)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error setting dbus address environment variable | %s", err.Error())
 	}
-	os.Setenv(envDbusPid, dbusID)
+	dbusID, err := readFile(dbusIDFile)
+	if err != nil {
+		return fmt.Errorf("Error when reading dbus id | %s", err.Error())
+	}
+	err = os.Setenv(envDbusPid, dbusID)
+	if err != nil {
+		return fmt.Errorf("Error setting dbus id environment variable | %s", err.Error())
+	}
 	return nil
 }
 
@@ -64,7 +72,7 @@ func readFile(path string) (string, error) {
 		if isExist(path) {
 			bytes, err := ioutil.ReadFile(path)
 			if err != nil {
-				return "", err
+				return "", fmt.Errorf("Error when reading file %s | %s", path, err.Error())
 			}
 			if len(bytes) > 0 {
 				return strings.TrimSpace(string(bytes)), err
