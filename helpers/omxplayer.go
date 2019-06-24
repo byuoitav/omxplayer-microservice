@@ -15,7 +15,7 @@ type OMXPlayer struct {
 }
 
 func (o *OMXPlayer) IsPlayerRunning() bool {
-	return o.ProcessCmd.ProcessState.Exited()
+	return !o.ProcessCmd.ProcessState.Exited()
 }
 
 func (o *OMXPlayer) CanCommand() bool {
