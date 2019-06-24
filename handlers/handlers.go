@@ -17,25 +17,25 @@ func PlayStream(ctx echo.Context) error {
 	streamURL := ctx.Param("streamURL")
 	streamURL, err := url.QueryUnescape(streamURL)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	if omxPlayer == nil {
 		//make a new instance of the player
-		omxPlayer, err := helpers.StartOMX(streamURL)
+		omxPlayer, err = helpers.StartOMX(streamURL)
 		if err != nil {
 			//Log error
-			return ctx.JSON(http.StatusInternalServerError, err)
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		omxPlayer.WaitForReady()
-		return ctx.JSON(http.StatusOK, nil)
+		return ctx.JSON(http.StatusOK, "Stream player started")
 	}
 	omxPlayer.WaitForReady()
-	err := helpers.SwitchStream(omxPlayer.Connection, streamURL) //Todo: Check if the same stream is already playing
+	err = helpers.SwitchStream(omxPlayer.Connection, streamURL) //Todo: Check if the same stream is already playing
 	if err != nil {
 		//Log error
-		return ctx.JSON(http.StatusInternalServerError, err)
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
-	return ctx.JSON(http.StatusOK, nil)
+	return ctx.JSON(http.StatusOK, "Stream switched")
 }
 
 //StopStream ...
@@ -44,9 +44,10 @@ func StopStream(ctx echo.Context) error {
 		err := helpers.StopStream(omxPlayer.Connection)
 		if err != nil {
 			//Log error
-			return ctx.JSON(http.StatusInternalServerError, err)
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
-		return ctx.JSON(http.StatusOK, nil)
+		omxPlayer = nil
+		return ctx.JSON(http.StatusOK, "Stream player stopped")
 	}
 	return ctx.JSON(http.StatusInternalServerError, fmt.Errorf("Stream player is not running or is not ready to receive commands"))
 }
@@ -58,7 +59,7 @@ func GetStream(ctx echo.Context) error {
 		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
 			//Log error
-			return ctx.JSON(http.StatusInternalServerError, err)
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, streamURL)
 	}
