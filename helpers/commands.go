@@ -27,7 +27,7 @@ func GetStream(conn *dbus.Conn) (string, error) {
 	var stream string
 	err := conn.Object(destination, path).Call(methodGetSource, 0).Store(&stream)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to get stream url | %s", err.Error())
 	}
 	return stream, err
 }

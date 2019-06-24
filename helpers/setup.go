@@ -43,7 +43,8 @@ func StartOMX(streamURL string) (*OMXPlayer, error) {
 }
 
 func runOmxplayer(stream string) error {
-	cmd := exec.Command("omxplayer", "--avdict", "rtsp_transport:tcp", stream)
+	// cmd := exec.Command("omxplayer", "--avdict", "rtsp_transport:tcp", stream)
+	cmd := exec.Command("omxplayer", stream)
 	return cmd.Start()
 }
 
