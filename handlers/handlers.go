@@ -116,7 +116,7 @@ func UnmuteStream(ctx echo.Context) error {
 }
 
 func checkPlayerStatus() {
-	if !omxPlayer.IsPlayerRunning() {
+	if omxPlayer != nil && !omxPlayer.IsPlayerRunning() {
 		omxPlayer = nil
 	}
 }
