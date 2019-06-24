@@ -45,7 +45,6 @@ func runOmxplayer(stream string) error {
 }
 
 func setEnvironmentVariables() error {
-	fmt.Println("Setting environment variables")
 	dbusAddress, err := readFile("/tmp/omxplayerdbus.pi") // Todo: set as constants
 	if err != nil {
 		return err
@@ -61,14 +60,24 @@ func setEnvironmentVariables() error {
 
 func readFile(path string) (string, error) {
 	for i := 0; i < 100; i++ {
-		bytes, err := ioutil.ReadFile(path)
-		if err != nil {
-			return "", err
+		if isExist(path) {
+			bytes, err := ioutil.ReadFile(path)
+			if err != nil {
+				return "", err
+			}
+			if len(bytes) > 0 {
+				return strings.TrimSpace(string(bytes)), err
+			}
 		}
-		if len(bytes) > 0 {
-			return strings.TrimSpace(string(bytes)), err
-		}
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
-	return "", fmt.Errorf("File %s is empty", path)
+	return "", fmt.Errorf("File %s is empty or does not exist", path)
+}
+
+func isExist(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return !os.IsNotExist(err)
+	}
+	return true
 }

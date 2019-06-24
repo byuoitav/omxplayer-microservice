@@ -56,7 +56,7 @@ func StopStream(ctx echo.Context) error {
 func GetStream(ctx echo.Context) error {
 	//Check Player
 	if omxPlayer != nil && omxPlayer.CanCommand() {
-		streamURL, err := helpers.GetStream(omxPlayer.Connection)
+		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
 			//Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
