@@ -14,55 +14,66 @@ var omxPlayer *helpers.OMXPlayer
 
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
 func PlayStream(ctx echo.Context) error {
+	checkPlayerStatus()
 	streamURL := ctx.Param("streamURL")
 	streamURL, err := url.QueryUnescape(streamURL)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	if omxPlayer == nil {
-		//make a new instance of the player
-		omxPlayer, err = helpers.StartOMX(streamURL)
+		err = startNewPlayer(streamURL)
 		if err != nil {
-			omxPlayer = nil
-			//Log error
-			return ctx.JSON(http.StatusInternalServerError, err.Error())
-		}
-		err = omxPlayer.WaitForReady()
-		if err != nil {
-			omxPlayer = nil
-			//Log error
+			//Todo: Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, "Stream player started")
 	}
-	err = omxPlayer.WaitForReady()
-	if err != nil { // The stream is invalid. The player needs to stop.
-
-		//Stop the stream player?
-		err = helpers.StopStream(omxPlayer.Connection)
-		if err != nil {
-			//Log error
-			return ctx.JSON(http.StatusInternalServerError, err.Error())
-		}
-		omxPlayer = nil
-
-		//Log error
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
-	}
-	err = helpers.SwitchStream(omxPlayer.Connection, streamURL) //Todo: Check if the same stream is already playing
+	err = switchStream(streamURL)
 	if err != nil {
-		//Log error
+		//Todo: Log error
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return ctx.JSON(http.StatusOK, "Stream switched")
 }
 
+func startNewPlayer(streamURL string) error {
+	omxPlayer, err := helpers.StartOMX(streamURL)
+	if err != nil {
+		omxPlayer = nil
+		return err
+	}
+	err = omxPlayer.WaitForReady()
+	if err != nil {
+		omxPlayer = nil
+		return err
+	}
+	return nil
+}
+
+func switchStream(streamURL string) error {
+	err := omxPlayer.WaitForReady()
+	if err != nil { // The stream is invalid. The player needs to stop.
+		err = helpers.StopStream(omxPlayer.Connection)
+		if err != nil {
+			return err
+		}
+		omxPlayer = nil
+		return err
+	}
+	err = helpers.SwitchStream(omxPlayer.Connection, streamURL) //Todo: Check if the same stream is already playing
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //StopStream ...
 func StopStream(ctx echo.Context) error {
+	checkPlayerStatus()
 	if omxPlayer != nil && omxPlayer.CanCommand() {
 		err := helpers.StopStream(omxPlayer.Connection)
 		if err != nil {
-			//Log error
+			//Todo: Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		omxPlayer = nil
@@ -73,16 +84,17 @@ func StopStream(ctx echo.Context) error {
 
 //GetStream ...
 func GetStream(ctx echo.Context) error {
+	checkPlayerStatus()
 	//Check Player
 	if omxPlayer != nil && omxPlayer.CanCommand() {
 		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
-			//Log error
+			//Todo: Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, streamURL)
 	}
-	//Log error
+	//Todo: Log error
 	return ctx.JSON(http.StatusInternalServerError, fmt.Errorf("Stream player is not running or is not ready to receive commands"))
 }
 
@@ -101,4 +113,10 @@ func MuteStream(ctx echo.Context) error {
 //UnmuteStream ...
 func UnmuteStream(ctx echo.Context) error {
 	return nil
+}
+
+func checkPlayerStatus() {
+	if !omxPlayer.IsPlayerRunning() {
+		omxPlayer = nil
+	}
 }

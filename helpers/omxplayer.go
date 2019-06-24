@@ -2,14 +2,20 @@ package helpers
 
 import (
 	"fmt"
+	"os/exec"
 	"time"
 
 	"github.com/godbus/dbus"
 )
 
 type OMXPlayer struct {
+	ProcessCmd *exec.Cmd
 	Connection *dbus.Conn
 	IsReady    bool
+}
+
+func (o *OMXPlayer) IsPlayerRunning() bool {
+	return o.ProcessCmd.ProcessState.Exited()
 }
 
 func (o *OMXPlayer) CanCommand() bool {
