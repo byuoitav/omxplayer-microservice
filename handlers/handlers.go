@@ -50,6 +50,12 @@ func startNewPlayer(streamURL string) (err error) {
 }
 
 func switchStream(streamURL string) (err error) {
+	err = omxPlayer.WaitForReady()
+	if err != nil {
+		err = helpers.StopStream(omxPlayer.Connection)
+		omxPlayer = nil
+		return
+	}
 	if checkStream(streamURL) {
 		err = helpers.SwitchStream(omxPlayer.Connection, streamURL)
 		if err != nil {
