@@ -14,6 +14,8 @@ func main() {
 	port := ":8032"
 	router := common.NewRouter()
 
+	router.Static("/", "web")
+
 	// write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))
 	// write.GET("/stream/:streamURL", handlers.PlayStream)
 	// write.GET("/stream/stop", handlers.StopStream)

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -86,7 +85,7 @@ func StopStream(ctx echo.Context) error {
 		omxPlayer = nil
 		return ctx.JSON(http.StatusOK, "Stream player stopped")
 	}
-	return ctx.JSON(http.StatusInternalServerError, fmt.Errorf("Stream player is not running or is not ready to receive commands"))
+	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
 //GetStream ...
@@ -102,7 +101,7 @@ func GetStream(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, streamURL)
 	}
 	//Todo: Log error
-	return ctx.JSON(http.StatusInternalServerError, fmt.Errorf("Stream player is not running or is not ready to receive commands"))
+	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
 //ChangeVolume ...
