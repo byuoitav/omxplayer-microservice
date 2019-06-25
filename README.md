@@ -1,2 +1,2 @@
 # omxplayer-microservice
-Microservice to connect to streams using raspberry pi's media player - omxplayer
+Microservice to view overflow streams using raspberry pi's media player - omxplayer
