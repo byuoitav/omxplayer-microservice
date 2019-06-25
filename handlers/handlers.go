@@ -64,7 +64,7 @@ func checkStream(streamURL string) bool {
 	return currStream != streamURL
 }
 
-//StopStream ...
+//StopStream stops the stream currently running
 func StopStream(ctx echo.Context) error {
 	checkPlayerStatus()
 	if omxPlayer != nil && omxPlayer.CanCommand() {
@@ -79,7 +79,7 @@ func StopStream(ctx echo.Context) error {
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
-//GetStream ...
+//GetStream returns the url of the stream currently running
 func GetStream(ctx echo.Context) error {
 	checkPlayerStatus()
 	//Check Player

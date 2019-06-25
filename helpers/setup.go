@@ -18,7 +18,7 @@ const (
 	dbusIDFile      = "/tmp/omxplayerdbus.pi.pid"
 )
 
-//StartOMX ...
+//StartOMX starts a new instance of the omxplayer and creates an interface through dbus
 func StartOMX(streamURL string) (*OMXPlayer, error) {
 	err := runOmxplayer(streamURL)
 	if err != nil {

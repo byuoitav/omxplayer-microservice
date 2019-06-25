@@ -23,6 +23,7 @@ const (
 	cmdVolume   = "Volume"
 )
 
+//GetStream returns the url of the stream currently playing
 func GetStream(conn *dbus.Conn) (string, error) {
 	var stream string
 	err := conn.Object(destination, path).Call(methodGetSource, 0).Store(&stream)
@@ -32,6 +33,7 @@ func GetStream(conn *dbus.Conn) (string, error) {
 	return stream, err
 }
 
+//GetPlaybackStatus returns the status of the player
 func GetPlaybackStatus(conn *dbus.Conn) (string, error) {
 	var playback string
 	err := conn.Object(destination, path).Call(methodPropGet, 0, playerPrefix, cmdPlayback).Store(&playback)
@@ -41,6 +43,7 @@ func GetPlaybackStatus(conn *dbus.Conn) (string, error) {
 	return playback, err
 }
 
+//StopStream quits the omxplayer
 func StopStream(conn *dbus.Conn) error {
 	err := conn.Object(destination, path).Call(methodStop, 0).Err
 	if err != nil {
@@ -49,6 +52,7 @@ func StopStream(conn *dbus.Conn) error {
 	return err
 }
 
+//SwitchStream switches player output to a new stream
 func SwitchStream(conn *dbus.Conn, streamURL string) error {
 	err := conn.Object(destination, path).Call(methodOpenURI, 0, streamURL).Err
 	if err != nil {
@@ -57,6 +61,7 @@ func SwitchStream(conn *dbus.Conn, streamURL string) error {
 	return err
 }
 
+//VolumeControl always returns the current volume and optionally can change the volume
 func VolumeControl(conn *dbus.Conn, volume ...float64) (currVolume float64, err error) {
 	if len(volume) == 0 {
 		err := conn.Object(destination, path).Call(methodPropSet, 0, playerPrefix, cmdVolume).Store(&currVolume)
@@ -72,6 +77,7 @@ func VolumeControl(conn *dbus.Conn, volume ...float64) (currVolume float64, err 
 	return
 }
 
+//Mute mutes the current player output
 func Mute(conn *dbus.Conn) error {
 	err := conn.Object(destination, path).Call(methodMute, 0).Err
 	if err != nil {
@@ -80,6 +86,7 @@ func Mute(conn *dbus.Conn) error {
 	return err
 }
 
+//Unmute unmutes the current player output
 func Unmute(conn *dbus.Conn) error {
 	err := conn.Object(destination, path).Call(methodUnmute, 0).Err
 	if err != nil {
