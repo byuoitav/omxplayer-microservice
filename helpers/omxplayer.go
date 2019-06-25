@@ -2,20 +2,26 @@ package helpers
 
 import (
 	"fmt"
-	"os/exec"
+	"os"
+	"syscall"
 	"time"
 
 	"github.com/godbus/dbus"
 )
 
 type OMXPlayer struct {
-	ProcessCmd *exec.Cmd
+	ProcessID  int
 	Connection *dbus.Conn
 	IsReady    bool
 }
 
 func (o *OMXPlayer) IsPlayerRunning() bool {
-	return !o.ProcessCmd.ProcessState.Exited()
+	process, err := os.FindProcess(o.ProcessID)
+	if err != nil {
+		return false
+	}
+	err = process.Signal(syscall.Signal(0))
+	return err == nil
 }
 
 func (o *OMXPlayer) CanCommand() bool {

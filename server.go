@@ -21,6 +21,8 @@ func main() {
 	router.GET("/stream/:streamURL", handlers.PlayStream)
 	router.GET("/stream/stop", handlers.StopStream)
 
+	// router.GET("/test", handlers.Test)
+
 	// read := router.Group("", auth.AuthorizeRequest("read-state", "room", auth.LookupResourceFromAddress))
 	// read.GET("/stream", handlers.GetStream)
 

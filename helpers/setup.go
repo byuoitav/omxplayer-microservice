@@ -36,7 +36,7 @@ func StartOMX(streamURL string) (*OMXPlayer, error) {
 	}
 
 	omxPlayer := &OMXPlayer{
-		ProcessCmd: cmd,
+		ProcessID:  cmd.Process.Pid,
 		Connection: conn,
 		IsReady:    false,
 	}
@@ -71,7 +71,7 @@ func setEnvironmentVariables() error {
 
 func readFile(path string) (string, error) {
 	for i := 0; i < 100; i++ {
-		if isExist(path) {
+		if checkFile(path) {
 			bytes, err := ioutil.ReadFile(path)
 			if err != nil {
 				return "", fmt.Errorf("Error when reading file %s | %s", path, err.Error())
@@ -85,7 +85,7 @@ func readFile(path string) (string, error) {
 	return "", fmt.Errorf("File %s is empty or does not exist", path)
 }
 
-func isExist(path string) bool {
+func checkFile(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
 		return !os.IsNotExist(err)

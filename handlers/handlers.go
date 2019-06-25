@@ -12,6 +12,10 @@ import (
 
 var omxPlayer *helpers.OMXPlayer
 
+func Test(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, omxPlayer.IsPlayerRunning())
+}
+
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
 func PlayStream(ctx echo.Context) error {
 	checkPlayerStatus()
