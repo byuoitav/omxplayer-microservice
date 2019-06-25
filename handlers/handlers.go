@@ -12,10 +12,6 @@ import (
 
 var omxPlayer *helpers.OMXPlayer
 
-func Test(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, omxPlayer.IsPlayerRunning())
-}
-
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
 func PlayStream(ctx echo.Context) error {
 	checkPlayerStatus()
@@ -40,35 +36,42 @@ func PlayStream(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, "Stream switched")
 }
 
-func startNewPlayer(streamURL string) error {
-	omxPlayer, err := helpers.StartOMX(streamURL)
+func startNewPlayer(streamURL string) (err error) {
+	omxPlayer, err = helpers.StartOMX(streamURL)
 	if err != nil {
 		omxPlayer = nil
-		return err
+		return
 	}
 	err = omxPlayer.WaitForReady()
 	if err != nil {
 		omxPlayer = nil
-		return err
+		return
 	}
-	return nil
+	return
 }
 
-func switchStream(streamURL string) error {
-	err := omxPlayer.WaitForReady()
+func switchStream(streamURL string) (err error) {
+	err = omxPlayer.WaitForReady()
 	if err != nil { // The stream is invalid. The player needs to stop.
 		err = helpers.StopStream(omxPlayer.Connection)
 		if err != nil {
-			return err
+			return
 		}
 		omxPlayer = nil
-		return err
+		return
 	}
-	err = helpers.SwitchStream(omxPlayer.Connection, streamURL) //Todo: Check if the same stream is already playing
-	if err != nil {
-		return err
+	if checkStream(streamURL) {
+		err = helpers.SwitchStream(omxPlayer.Connection, streamURL)
+		if err != nil {
+			return
+		}
 	}
-	return nil
+	return
+}
+
+func checkStream(streamURL string) bool {
+	currStream, _ := helpers.GetStream(omxPlayer.Connection)
+	return currStream != streamURL
 }
 
 //StopStream ...
