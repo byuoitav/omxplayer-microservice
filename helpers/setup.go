@@ -20,7 +20,7 @@ const (
 
 //StartOMX ...
 func StartOMX(streamURL string) (*OMXPlayer, error) {
-	cmd, err := runOmxplayer(streamURL)
+	err := runOmxplayer(streamURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run omxplayer | %s", err.Error())
 	}
@@ -36,17 +36,14 @@ func StartOMX(streamURL string) (*OMXPlayer, error) {
 	}
 
 	omxPlayer := &OMXPlayer{
-		ProcessID:  cmd.Process.Pid,
 		Connection: conn,
-		IsReady:    false,
 	}
 	return omxPlayer, err
 }
 
-func runOmxplayer(stream string) (cmd *exec.Cmd, err error) {
-	cmd = exec.Command("omxplayer", stream)
-	err = cmd.Start()
-	return
+func runOmxplayer(stream string) error {
+	cmd := exec.Command("omxplayer", stream)
+	return cmd.Start()
 }
 
 func setEnvironmentVariables() error {

@@ -50,15 +50,6 @@ func startNewPlayer(streamURL string) (err error) {
 }
 
 func switchStream(streamURL string) (err error) {
-	err = omxPlayer.WaitForReady()
-	if err != nil { // The stream is invalid. The player needs to stop.
-		err = helpers.StopStream(omxPlayer.Connection)
-		if err != nil {
-			return
-		}
-		omxPlayer = nil
-		return
-	}
 	if checkStream(streamURL) {
 		err = helpers.SwitchStream(omxPlayer.Connection, streamURL)
 		if err != nil {
@@ -122,7 +113,7 @@ func UnmuteStream(ctx echo.Context) error {
 }
 
 func checkPlayerStatus() {
-	if omxPlayer != nil && !omxPlayer.IsPlayerRunning() {
+	if omxPlayer != nil && !omxPlayer.CanCommand() {
 		omxPlayer = nil
 	}
 }
