@@ -28,6 +28,12 @@ func main() {
 
 	router.GET("/stream", handlers.GetStream)
 
+	// router.GET("/volume/mute", handlers.MuteStream)
+	// router.GET("/volume/unmute", handlers.UnmuteStream)
+
+	// router.GET("/volume", handlers.GetVolume)
+	// router.GET("/volume/:volume", handlers.ChangeVolume)
+
 	router.PUT("/log-level/:level", log.SetLogLevel)
 	router.GET("/log-level", log.GetLogLevel)
 

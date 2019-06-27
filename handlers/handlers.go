@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -67,7 +68,7 @@ func checkStream(streamURL string) bool {
 //StopStream stops the stream currently running
 func StopStream(ctx echo.Context) error {
 	checkPlayerStatus()
-	if omxPlayer != nil && omxPlayer.CanCommand() {
+	if omxPlayer != nil {
 		err := helpers.StopStream(omxPlayer.Connection)
 		if err != nil {
 			//Todo: Log error
@@ -83,7 +84,7 @@ func StopStream(ctx echo.Context) error {
 func GetStream(ctx echo.Context) error {
 	checkPlayerStatus()
 	//Check Player
-	if omxPlayer != nil && omxPlayer.CanCommand() {
+	if omxPlayer != nil {
 		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
 			//Todo: Log error
@@ -100,16 +101,46 @@ func ChangeVolume(ctx echo.Context) error {
 	return nil
 }
 
-//GetVolume?
+//GetVolume ...
+func GetVolume(ctx echo.Context) error {
+	checkPlayerStatus()
+	if omxPlayer != nil {
+		volume, err := helpers.VolumeControl(omxPlayer.Connection)
+		if err != nil {
+			//Todo: Log error
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return ctx.JSON(http.StatusOK, fmt.Fprint("Current stream volume: %f", volume))
+	}
+	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
+}
 
 //MuteStream ...
 func MuteStream(ctx echo.Context) error {
-	return nil
+	checkPlayerStatus()
+	if omxPlayer != nil {
+		err := helpers.Mute(omxPlayer.Connection)
+		if err != nil {
+			//Todo: Log error
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return ctx.JSON(http.StatusOK, "Stream muted")
+	}
+	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
 //UnmuteStream ...
 func UnmuteStream(ctx echo.Context) error {
-	return nil
+	checkPlayerStatus()
+	if omxPlayer != nil {
+		err := helpers.Unmute(omxPlayer.Connection)
+		if err != nil {
+			//Todo: Log error
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return ctx.JSON(http.StatusOK, "Stream unmuted")
+	}
+	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
 func checkPlayerStatus() {
