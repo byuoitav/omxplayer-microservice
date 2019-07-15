@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/byuoitav/common/status"
+
 	"github.com/byuoitav/omxplayer-microservice/helpers"
 
 	"github.com/labstack/echo"
@@ -90,7 +92,7 @@ func GetStream(ctx echo.Context) error {
 			//Todo: Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
-		return ctx.JSON(http.StatusOK, streamURL)
+		return ctx.JSON(http.StatusOK, status.Input{Input: streamURL})
 	}
 	//Todo: Log error
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
@@ -110,7 +112,7 @@ func GetVolume(ctx echo.Context) error {
 			//Todo: Log error
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
-		return ctx.JSON(http.StatusOK, fmt.Fprint("Current stream volume: %f", volume))
+		return ctx.JSON(http.StatusOK, fmt.Sprintf("Current stream volume: %f", volume))
 	}
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
