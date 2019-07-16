@@ -14,8 +14,8 @@ import (
 const (
 	envDbusAddress  = "DBUS_SESSION_BUS_ADDRESS"
 	envDbusPid      = "DBUS_SESSION_BUS_PID"
-	dbusAddressFile = "/tmp/omxplayerdbus." + os.Getenv("USER")
-	dbusIDFile      = "/tmp/omxplayerdbus." + os.Getenv("USER") + ".pid"
+	dbusAddressFile = "/tmp/omxplayerdbus.pi"
+	dbusIDFile      = "/tmp/omxplayerdbus.pi.pid"
 )
 
 //StartOMX starts a new instance of the omxplayer and creates an interface through dbus
