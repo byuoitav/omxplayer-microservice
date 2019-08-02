@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/status"
 
 	"github.com/byuoitav/omxplayer-microservice/helpers"
@@ -20,25 +21,29 @@ func PlayStream(ctx echo.Context) error {
 
 	streamURL := ctx.Param("streamURL")
 	streamURL, err := url.QueryUnescape(streamURL)
+	log.L.Infof("Switching to play stream: %s", streamURL)
 	if err != nil {
+		log.L.Errorf("Error getting stream URL: %s", err.Error())
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	if omxPlayer == nil {
 		err = startNewPlayer(streamURL)
 		if err != nil {
-			//Todo: Log error
+			log.L.Errorf("Error starting stream player: %s", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
+		log.L.Infof("Stream player started, playing stream at URL: %s", streamURL)
 		return ctx.JSON(http.StatusOK, "Stream player started")
 	}
 
 	err = switchStream(streamURL)
 	if err != nil {
-		//Todo: Log error
+		log.L.Errorf("Error when switching stream: %s", err.Error())
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 
+	log.L.Infof("Stream switched to URL: %s", streamURL)
 	return ctx.JSON(http.StatusOK, "Stream switched")
 }
 
@@ -70,31 +75,36 @@ func checkStream(streamURL string) bool {
 //StopStream stops the stream currently running
 func StopStream(ctx echo.Context) error {
 	checkPlayerStatus()
+	log.L.Infof("Stopping stream player...")
 	if omxPlayer != nil {
 		err := helpers.StopStream(omxPlayer.Connection)
 		if err != nil {
-			//Todo: Log error
+			log.L.Errorf("Error when stopping stream: %s", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		omxPlayer = nil
+		log.L.Infof("Stream player stopped")
 		return ctx.JSON(http.StatusOK, "Stream player stopped")
 	}
+	log.L.Infof("Stream player is not running or is not ready to receive commands")
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
 //GetStream returns the url of the stream currently running
 func GetStream(ctx echo.Context) error {
 	checkPlayerStatus()
+	log.L.Infof("Getting current playing stream URL...")
 	//Check Player
 	if omxPlayer != nil {
 		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
-			//Todo: Log error
+			log.L.Errorf("Error when attempting to get current playing stream: %s", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
+		log.L.Infof("Getting current playing stream: %s", streamURL)
 		return ctx.JSON(http.StatusOK, status.Input{Input: streamURL})
 	}
-	//Todo: Log error
+	log.L.Infof("Stream player is not running or is not ready to receive commands")
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
@@ -109,7 +119,7 @@ func GetVolume(ctx echo.Context) error {
 	if omxPlayer != nil {
 		volume, err := helpers.VolumeControl(omxPlayer.Connection)
 		if err != nil {
-			//Todo: Log error
+			log.L.Errorf("", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, fmt.Sprintf("Current stream volume: %f", volume))
@@ -123,7 +133,7 @@ func MuteStream(ctx echo.Context) error {
 	if omxPlayer != nil {
 		err := helpers.Mute(omxPlayer.Connection)
 		if err != nil {
-			//Todo: Log error
+			log.L.Errorf("", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, "Stream muted")
@@ -137,7 +147,7 @@ func UnmuteStream(ctx echo.Context) error {
 	if omxPlayer != nil {
 		err := helpers.Unmute(omxPlayer.Connection)
 		if err != nil {
-			//Todo: Log error
+			log.L.Errorf("", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.JSON(http.StatusOK, "Stream unmuted")

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/byuoitav/common/log"
 	"github.com/godbus/dbus"
 )
 
@@ -20,16 +21,19 @@ const (
 
 //StartOMX starts a new instance of the omxplayer and creates an interface through dbus
 func StartOMX(streamURL string) (*OMXPlayer, error) {
+	log.L.Infof("Starting omxplayer...")
 	err := runOmxplayer(streamURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run omxplayer | %s", err.Error())
 	}
 
+	log.L.Infof("Setting environment variables")
 	err = setEnvironmentVariables()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to set environment variables | %s", err.Error())
 	}
 
+	log.L.Infof("Connecting to dbus session")
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
