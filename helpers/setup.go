@@ -57,7 +57,7 @@ func setEnvironmentVariables() error {
 		userID = "root"
 	}
 	log.L.Infof("Environment variable USER: %s", userID)
-	dbusAddressFile := dbusAddressFilePrefix + "root"
+	dbusAddressFile := dbusAddressFilePrefix + userID
 	dbusAddress, err := readFile(dbusAddressFile)
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus address | %s", err.Error())
@@ -66,7 +66,7 @@ func setEnvironmentVariables() error {
 	if err != nil {
 		return fmt.Errorf("Error setting dbus address environment variable | %s", err.Error())
 	}
-	dbusIDFile := dbusAddressFilePrefix + "root" + dbusIDFilePostfix
+	dbusIDFile := dbusAddressFilePrefix + userID + dbusIDFilePostfix
 	dbusID, err := readFile(dbusIDFile)
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus id | %s", err.Error())
