@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -53,8 +54,17 @@ func StartOMX(streamURL string) (*OMXPlayer, error) {
 }
 
 func deleteOmxDbusFiles() error {
-	omxDbusFiles := dbusAddressFilePrefix + "*"
-	return os.Remove(omxDbusFiles)
+	omxDbusAddressFiles := dbusAddressFilePrefix + "*"
+	files, err := filepath.Glob(omxDbusAddressFiles)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		if err = os.Remove(file); err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 func runOmxplayer(stream string) error {
