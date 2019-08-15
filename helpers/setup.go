@@ -29,7 +29,7 @@ func StartOMX(streamURL string) (*OMXPlayer, error) {
 	}
 
 	log.L.Infof("Starting omxplayer...")
-	err := runOmxplayer(streamURL)
+	err = runOmxplayer(streamURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run omxplayer | %s", err.Error())
 	}
