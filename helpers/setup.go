@@ -53,7 +53,9 @@ func runOmxplayer(stream string) error {
 
 func setEnvironmentVariables() error {
 	userID := os.Getenv(userEnvVar)
-	dbusAddress, err := readFile(dbusAddressFilePrefix + userID)
+	log.L.Infof("Environment variable USER: %s", userID)
+	dbAddressFile := dbusAddressFilePrefix + "root"
+	dbusAddress, err := readFile(dbAddressFile)
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus address | %s", err.Error())
 	}
@@ -61,7 +63,8 @@ func setEnvironmentVariables() error {
 	if err != nil {
 		return fmt.Errorf("Error setting dbus address environment variable | %s", err.Error())
 	}
-	dbusID, err := readFile(dbusAddressFilePrefix + userID + dbusIDFilePostfix)
+	dbusIDFile := dbusAddressFilePrefix + "root" + dbusIDFilePostfix
+	dbusID, err := readFile(dbusIDFile)
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus id | %s", err.Error())
 	}
