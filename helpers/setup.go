@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	envDbusAddress  = "DBUS_SESSION_BUS_ADDRESS"
-	envDbusPid      = "DBUS_SESSION_BUS_PID"
-	dbusAddressFile = "/tmp/omxplayerdbus.pi"
-	dbusIDFile      = "/tmp/omxplayerdbus.pi.pid"
+	envDbusAddress        = "DBUS_SESSION_BUS_ADDRESS"
+	envDbusPid            = "DBUS_SESSION_BUS_PID"
+	dbusAddressFilePrefix = "/tmp/omxplayerdbus."
+	dbusIDFilePostfix     = ".pid"
+	userEnvVar            = "USER"
 )
 
 //StartOMX starts a new instance of the omxplayer and creates an interface through dbus
@@ -51,7 +52,8 @@ func runOmxplayer(stream string) error {
 }
 
 func setEnvironmentVariables() error {
-	dbusAddress, err := readFile(dbusAddressFile)
+	userID := os.Getenv(userEnvVar)
+	dbusAddress, err := readFile(dbusAddressFile + userID)
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus address | %s", err.Error())
 	}
@@ -59,7 +61,7 @@ func setEnvironmentVariables() error {
 	if err != nil {
 		return fmt.Errorf("Error setting dbus address environment variable | %s", err.Error())
 	}
-	dbusID, err := readFile(dbusIDFile)
+	dbusID, err := readFile(dbusAddressFilePrefix + userID + dbusIDFilePostfix)
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus id | %s", err.Error())
 	}
