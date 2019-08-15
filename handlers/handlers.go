@@ -93,15 +93,15 @@ func StopStream(ctx echo.Context) error {
 //GetStream returns the url of the stream currently running
 func GetStream(ctx echo.Context) error {
 	checkPlayerStatus()
-	log.L.Infof("Getting current playing stream URL...")
+	log.L.Infof("Getting current stream URL...")
 	//Check Player
 	if omxPlayer != nil {
 		streamURL, err := helpers.GetStream(omxPlayer.Connection)
 		if err != nil {
-			log.L.Errorf("Error when attempting to get current playing stream: %s", err.Error())
+			log.L.Errorf("Error when attempting to get current stream: %s", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
-		log.L.Infof("Getting current playing stream: %s", streamURL)
+		log.L.Infof("Getting current stream: %s", streamURL)
 		return ctx.JSON(http.StatusOK, status.Input{Input: streamURL})
 	}
 	log.L.Infof("Stream player is not running or is not ready to receive commands")
