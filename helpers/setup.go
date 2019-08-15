@@ -22,6 +22,12 @@ const (
 
 //StartOMX starts a new instance of the omxplayer and creates an interface through dbus
 func StartOMX(streamURL string) (*OMXPlayer, error) {
+	log.L.Infof("Removing dbus files")
+	err := deleteOmxDbusFiles()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to remove omxplayer dbus files | %s", err.Error())
+	}
+
 	log.L.Infof("Starting omxplayer...")
 	err := runOmxplayer(streamURL)
 	if err != nil {
@@ -44,6 +50,11 @@ func StartOMX(streamURL string) (*OMXPlayer, error) {
 		Connection: conn,
 	}
 	return omxPlayer, err
+}
+
+func deleteOmxDbusFiles() error {
+	omxDbusFiles := dbusAddressFilePrefix + "*"
+	return os.Remove(omxDbusFiles)
 }
 
 func runOmxplayer(stream string) error {
