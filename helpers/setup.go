@@ -47,7 +47,7 @@ func ConnectToDbus() (*dbus.Conn, error) {
 		return nil, fmt.Errorf("Failed to set environment variables | %s", err.Error())
 	}
 
-	conn, err := dbus.SessionBus()
+	conn, err := dbus.SessionBusPrivate()
 	if err != nil {
 		log.L.Debugf("Failed to connect to dbus | %s", err.Error())
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
