@@ -43,11 +43,13 @@ func ConnectToDbus() (*dbus.Conn, error) {
 	log.L.Debug("Trying connection to dbus")
 	err := setEnvironmentVariables()
 	if err != nil {
+		log.L.Debugf("Failed to set environment variables | %s", err.Error())
 		return nil, fmt.Errorf("Failed to set environment variables | %s", err.Error())
 	}
 
 	conn, err := dbus.SessionBus()
 	if err != nil {
+		log.L.Debugf("Failed to connect to dbus | %s", err.Error())
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
 	}
 

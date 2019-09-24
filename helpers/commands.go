@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 
+	"github.com/byuoitav/common/log"
 	"github.com/godbus/dbus"
 )
 
@@ -38,6 +39,7 @@ func GetPlaybackStatus(conn *dbus.Conn) (string, error) {
 	var playback string
 	err := conn.Object(destination, path).Call(methodPropGet, 0, playerPrefix, cmdPlayback).Store(&playback)
 	if err != nil {
+		log.L.Debugf("Failed to get playback status | %s", err.Error())
 		return "", fmt.Errorf("Failed to get playback status | %s", err.Error())
 	}
 	return playback, err
