@@ -21,36 +21,37 @@ const (
 	userEnvVar            = "USER"
 )
 
-//StartOMX starts a new instance of the omxplayer and creates an interface through dbus
-func StartOMX(streamURL string) (*OMXPlayer, error) {
-	log.L.Infof("Removing dbus files")
+//StartOMX starts a new instance of the omxplayer
+func StartOMX(streamURL string) error {
+	log.L.Debug("Removing dbus files")
 	err := deleteOmxDbusFiles()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to remove omxplayer dbus files | %s", err.Error())
+		return fmt.Errorf("Failed to remove omxplayer dbus files | %s", err.Error())
 	}
 
 	log.L.Infof("Starting omxplayer...")
 	err = runOmxplayer(streamURL)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to run omxplayer | %s", err.Error())
+		return fmt.Errorf("Failed to run omxplayer | %s", err.Error())
 	}
 
-	log.L.Infof("Setting environment variables")
-	err = setEnvironmentVariables()
+	return nil
+}
+
+// ConnectToDbus establishes a new connection to the omxplayer over dbus
+func ConnectToDbus() (*dbus.Conn, error) {
+	log.L.Debug("Trying connection to dbus")
+	err := setEnvironmentVariables()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to set environment variables | %s", err.Error())
 	}
 
-	log.L.Infof("Connecting to dbus session")
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
 	}
 
-	omxPlayer := &OMXPlayer{
-		Connection: conn,
-	}
-	return omxPlayer, err
+	return conn, nil
 }
 
 func deleteOmxDbusFiles() error {
