@@ -53,6 +53,18 @@ func ConnectToDbus() (*dbus.Conn, error) {
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
 	}
 
+	if err = conn.Auth(nil); err != nil {
+		log.L.Debugf("Dbus auth error | %s", err.Error())
+		conn.Close()
+		conn = nil
+		return nil, fmt.Errorf("Failed to connect to dbus, auth error | %s", err.Error())
+	}
+	if err = conn.Hello(); err != nil {
+		log.L.Debugf("Dbus Hello error | %s", err.Error())
+		conn.Close()
+		conn = nil
+	}
+
 	_, err = GetPlaybackStatus(conn)
 	return conn, err
 }
