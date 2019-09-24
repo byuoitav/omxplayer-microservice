@@ -51,7 +51,8 @@ func ConnectToDbus() (*dbus.Conn, error) {
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
 	}
 
-	return conn, nil
+	_, err = GetPlaybackStatus(conn)
+	return conn, err
 }
 
 func deleteOmxDbusFiles() error {

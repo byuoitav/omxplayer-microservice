@@ -97,8 +97,3 @@ func GetStream(ctx echo.Context) error {
 	log.L.Infof("Stream player is not running or is not ready to receive commands")
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
-
-func checkPlayerStatus(conn *dbus.Conn) error {
-	_, err := helpers.GetPlaybackStatus(conn)
-	return err
-}
