@@ -87,6 +87,7 @@ func setEnvironmentVariables() error {
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus address | %s", err.Error())
 	}
+	log.L.Debugf("Setenv: DbusAddress: %s", dbusAddress)
 	err = os.Setenv(envDbusAddress, dbusAddress)
 	if err != nil {
 		return fmt.Errorf("Error setting dbus address environment variable | %s", err.Error())
@@ -96,10 +97,13 @@ func setEnvironmentVariables() error {
 	if err != nil {
 		return fmt.Errorf("Error when reading dbus id | %s", err.Error())
 	}
+	log.L.Debugf("Setenv: DbusPID: %s", dbusID)
 	err = os.Setenv(envDbusPid, dbusID)
 	if err != nil {
 		return fmt.Errorf("Error setting dbus id environment variable | %s", err.Error())
 	}
+
+	log.L.Debugf("Getenv: DbusAddress: %s\nGetenv: DbusPID: %s", os.Getenv(envDbusAddress), os.Getenv(envDbusPid))
 	return nil
 }
 
