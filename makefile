@@ -59,6 +59,7 @@ endif
 	@echo Building deployment tarball
 	@mkdir files
 	@cp version.txt files/
+	@cp -r web files/
 
 	@tar -czf $(BRANCH).tar.gz $(NAME) files
 
