@@ -1,0 +1,44 @@
+﻿-- logger module started --
+main: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+main: playlist is empty
+-- logger module stopped --
+﻿-- logger module started --
+main: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+main: playlist is empty
+-- logger module stopped --
+﻿-- logger module started --
+main: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+main: playlist is empty
+access error: HTTP 403 error
+access error: HTTP 403 error
+access error: HTTP 403 error
+access error: HTTP 403 error
+access error: HTTP 403 error
+-- logger module stopped --
+﻿-- logger module started --
+main: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+main: playlist is empty
+access error: HTTP 403 error
+access error: HTTP 403 error
+access error: HTTP 403 error
+access error: HTTP 403 error
+access error: HTTP 403 error
+-- logger module stopped --
+﻿-- logger module started --
+main: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+main: playlist is empty
+mpeg4audio: AAC channels: 2 samplerate: 48000
+glconv_vaapi_x11 error: vaDeriveImage: operation failed
+main error: video output creation failed
+main error: failed to create video output
+avcodec: Using G3DVL VDPAU Driver Shared Library version 1.0 for hardware decoding
+main error: buffer deadlock prevented
+﻿-- logger module started --
+main: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+main: playlist is empty
+mpeg4audio: AAC channels: 2 samplerate: 48000
+glconv_vaapi_x11 error: vaDeriveImage: operation failed
+main error: video output creation failed
+main error: failed to create video output
+avcodec: Using G3DVL VDPAU Driver Shared Library version 1.0 for hardware decoding
+main error: buffer deadlock prevented

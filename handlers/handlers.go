@@ -29,44 +29,20 @@ type Handlers struct {
 
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
 func (h *Handlers) PlayStream(ctx echo.Context) error {
-	log.L.Infof("we here\n")
 	streamURL := ctx.Param("streamURL")
-	// var config data.StreamConfig
-
-	// client, err := kivik.New("couch", fmt.Sprintf("https://%s:%s@%s", os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_ADDRESS")))
-	// if err != nil {
-	// 	log.L.Errorf("error connecting to couch: %s", err.Error())
-	// 	return ctx.JSON(http.StatusInternalServerError, err.Error())
-	// }
-
-	// db := client.DB(context.TODO(), "stream-configs")
-	// if err := db.Get(context.TODO(), "streams").ScanDoc(&config); err != nil {
-	// 	log.L.Errorf("error getting stream config doc: %s", err)
-	// 	return ctx.JSON(http.StatusInternalServerError, err.Error())
-	// }
-	// log.L.Infof("stream config: %v", config)
-
-	// if s, ok := config.Streams[streamURL]; ok {
-	// 	//generate the hash code and edit the stream url in here
-	// 	streamURL, err = h.generateToken(s)
-	// 	if err != nil {
-	// 		log.L.Errorf("error generating secure token: %s", err.Error())
-	// 		return ctx.JSON(http.StatusInternalServerError, err.Error())
-	// 	}
-	// 	log.L.Infof("generated secure token: %s\n", streamURL)
-	// }
 
 	stream, err := h.ConfigService.GetStreamConfig(context.TODO(), streamURL)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	if stream != (data.Stream{}) {
-		streamURL, err = h.generateToken(stream)
+		token, err := h.generateToken(stream)
 		if err != nil {
 			log.L.Errorf("error generating secure token: %s", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
-		log.L.Infof("generated secure token: %s\n", streamURL)
+		log.L.Infof("generated secure token: %s\n", token)
+		streamURL += token
 	}
 
 	streamURL, err = url.QueryUnescape(streamURL)
@@ -76,7 +52,7 @@ func (h *Handlers) PlayStream(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	log.L.Infof("final url: %s", streamURL)
-	return nil
+
 	//Open new connection to dbus
 	conn, err := helpers.ConnectToDbus()
 	if err != nil {
@@ -164,8 +140,9 @@ func (h *Handlers) generateToken(s data.Stream) (string, error) {
 	endTime := startTime.Add(duration)
 	start := startTime.Unix()
 	end := endTime.Unix()
-	url := fmt.Sprintf("%s?%sendtime=%d&%sstarttime=%d", s.URL, s.QueryPrefix, end, s.QueryPrefix, start)
+	url := fmt.Sprintf("%s?%s&%sendtime=%d&%sstarttime=%d", s.URL, s.Secret, s.QueryPrefix, end, s.QueryPrefix, start)
 	input := strings.NewReader(url)
+
 	if _, err := io.Copy(hash, input); err != nil {
 		log.L.Errorf("error creating the hash: %s", err.Error())
 		return "", err
@@ -174,6 +151,6 @@ func (h *Handlers) generateToken(s data.Stream) (string, error) {
 	finalHash := string(base64.StdEncoding.EncodeToString(hash.Sum(nil)))
 	finalHash = strings.ReplaceAll(finalHash, "+", "-")
 	finalHash = strings.ReplaceAll(finalHash, "/", "_")
-	return fmt.Sprintf("%s?%sstarttime=%d&%sendtime=%d&%shash=%s", s.URL, s.QueryPrefix, start, s.QueryPrefix,
+	return fmt.Sprintf("?%sstarttime=%d&%sendtime=%d&%shash=%s", s.QueryPrefix, start, s.QueryPrefix,
 		end, s.QueryPrefix, finalHash), nil
 }

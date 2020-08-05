@@ -8,7 +8,8 @@ import (
 	"github.com/byuoitav/omxplayer-microservice/couch"
 	"github.com/byuoitav/omxplayer-microservice/handlers"
 
-	"github.com/go-kivik/kivik"
+	_ "github.com/go-kivik/couchdb/v3"
+	kivik "github.com/go-kivik/kivik/v3"
 
 	"github.com/byuoitav/common"
 	"github.com/byuoitav/common/log"
@@ -32,7 +33,7 @@ func main() {
 	}
 
 	h := handlers.Handlers{
-		ConfigService: config,
+		ConfigService: &config,
 	}
 
 	// write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))

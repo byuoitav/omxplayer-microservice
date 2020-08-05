@@ -5,7 +5,7 @@ import (
 )
 
 type ConfigService interface {
-	GetStreamConfig(ctx context.Context, stream string) (Stream, error)
+	GetStreamConfig(ctx context.Context, streamURL string) (Stream, error)
 }
 
 type StreamConfig struct {

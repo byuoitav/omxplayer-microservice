@@ -5,7 +5,8 @@ import (
 
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/omxplayer-microservice/data"
-	"github.com/go-kivik/kivik"
+	_ "github.com/go-kivik/couchdb/v3"
+	kivik "github.com/go-kivik/kivik/v3"
 )
 
 type ConfigService struct {
