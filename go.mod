@@ -15,6 +15,7 @@ require (
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/sevenNt/echo-pprof v0.1.0 // indirect
 	github.com/valyala/fasttemplate v1.2.0 // indirect
+	go.etcd.io/bbolt v1.3.5
 	go.uber.org/zap v1.15.0 // indirect
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect

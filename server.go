@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/byuoitav/omxplayer-microservice/cache"
 	"github.com/byuoitav/omxplayer-microservice/couch"
 	"github.com/byuoitav/omxplayer-microservice/handlers"
 
 	_ "github.com/go-kivik/couchdb/v3"
 	kivik "github.com/go-kivik/kivik/v3"
+	bolt "go.etcd.io/bbolt"
 
 	"github.com/byuoitav/common"
 	"github.com/byuoitav/common/log"
@@ -27,9 +29,35 @@ func main() {
 		return
 	}
 
-	config := couch.ConfigService{
+	c := couch.ConfigService{
 		Client:         client,
 		StreamConfigDB: "stream-configs",
+	}
+
+	dbLoc := os.Getenv("CACHE_DATABASE_LOCATION")
+	db, err := bolt.Open(dbLoc, 0600, nil)
+	if err != nil {
+		log.L.Errorf("error creating cache: %s", err.Error())
+		return
+	}
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		log.L.Debugf("Checking if Stream Bucket Exists")
+		_, err := tx.CreateBucketIfNotExists([]byte("STREAMS"))
+		if err != nil {
+			return fmt.Errorf("error creating stream bucket: %s", err.Error())
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.L.Errorf("could not create db bucket: %s", err.Error())
+		return
+	}
+
+	config := cache.ConfigService{
+		ConfigService: &c,
+		DB:            db,
 	}
 
 	h := handlers.Handlers{
