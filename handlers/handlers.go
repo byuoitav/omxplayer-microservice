@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -28,53 +27,56 @@ type Handlers struct {
 }
 
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
-func (h *Handlers) PlayStream(ctx echo.Context) error {
-	streamURL := ctx.Param("streamURL")
+func (h *Handlers) PlayStream(c echo.Context) error {
+	streamURL := c.Param("streamURL")
 
-	stream, err := h.ConfigService.GetStreamConfig(context.TODO(), streamURL)
+	stream, err := h.ConfigService.GetStreamConfig(c.Request().Context(), streamURL)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	if stream != (data.Stream{}) {
+	if stream.Secret != "" {
+		// token is everything after the base url
 		token, err := h.generateToken(stream)
 		if err != nil {
 			log.L.Errorf("error generating secure token: %s", err.Error())
-			return ctx.JSON(http.StatusInternalServerError, err.Error())
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 		log.L.Infof("generated secure token: %s\n", token)
+		// add the token to the base url
 		streamURL += token
 	}
 
 	streamURL, err = url.QueryUnescape(streamURL)
-	log.L.Infof("Switching to play stream: %s", streamURL)
 	if err != nil {
-		log.L.Errorf("Error getting stream URL: %s", err.Error())
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		log.L.Errorf("error getting stream URL: %s", err.Error())
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	log.L.Infof("final url: %s", streamURL)
+
+	log.L.Infof("Playing stream %s", streamURL)
 
 	//Open new connection to dbus
 	conn, err := helpers.ConnectToDbus()
 	if err != nil {
 		log.L.Debug("Can't open dbus connection, starting new stream player")
-		err = helpers.StartOMX(streamURL)
-		if err != nil {
+
+		if err := helpers.StartOMX(streamURL); err != nil {
 			log.L.Errorf("Error starting stream player: %s", err.Error())
-			return ctx.JSON(http.StatusInternalServerError, err.Error())
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
+
 		log.L.Infof("Stream player started, playing stream at URL: %s", streamURL)
-		return ctx.JSON(http.StatusOK, "Stream player started")
+		return c.String(http.StatusOK, "Stream player started")
 	}
 
 	log.L.Debug("Reconnected to dbus, now switching stream")
-	err = h.switchStream(streamURL, conn)
-	if err != nil {
+
+	if err := h.switchStream(streamURL, conn); err != nil {
 		log.L.Errorf("Error when switching stream: %s", err.Error())
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	log.L.Infof("Stream switched to URL: %s", streamURL)
-	return ctx.JSON(http.StatusOK, "Stream switched")
+	log.L.Infof("Successfully started stream %s", streamURL)
+	return c.String(http.StatusOK, "Stream switched")
 }
 
 func (h *Handlers) switchStream(streamURL string, conn *dbus.Conn) error {
@@ -84,6 +86,7 @@ func (h *Handlers) switchStream(streamURL string, conn *dbus.Conn) error {
 			return err
 		}
 	}
+
 	return nil
 }
 

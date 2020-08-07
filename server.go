@@ -64,13 +64,12 @@ func main() {
 		ConfigService: &config,
 	}
 
+	router.GET("/control", h.ControlPage)
 	// write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))
 	// write.GET("/stream/:streamURL", handlers.PlayStream)
 	// write.GET("/stream/stop", handlers.StopStream)
 	router.GET("/stream/:streamURL", h.PlayStream)
 	router.GET("/stream/stop", h.StopStream)
-	// read := router.Group("", auth.AuthorizeRequest("read-state", "room", auth.LookupResourceFromAddress))
-	// read.GET("/stream", handlers.GetStream)
 	router.GET("/stream", h.GetStream)
 
 	router.PUT("/log-level/:level", log.SetLogLevel)
