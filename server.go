@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/byuoitav/omxplayer-microservice/cache"
 	"github.com/byuoitav/omxplayer-microservice/couch"
 	"github.com/byuoitav/omxplayer-microservice/handlers"
 
@@ -26,22 +27,18 @@ func main() {
 		return
 	}
 
-	config := couch.ConfigService{
-		Client:         client,
-		StreamConfigDB: "stream-configs",
+	h := &handlers.Handlers{
+		ConfigService: &cache.ConfigService{
+			ConfigService: &couch.ConfigService{
+				Client:         client,
+				StreamConfigDB: "stream-configs",
+			},
+		},
 	}
 
-	h := handlers.Handlers{
-		ConfigService: config,
-	}
-
-	// write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))
-	// write.GET("/stream/:streamURL", handlers.PlayStream)
-	// write.GET("/stream/stop", handlers.StopStream)
+	router.GET("/control", h.ControlPage)
 	router.GET("/stream/:streamURL", h.PlayStream)
 	router.GET("/stream/stop", h.StopStream)
-	// read := router.Group("", auth.AuthorizeRequest("read-state", "room", auth.LookupResourceFromAddress))
-	// read.GET("/stream", handlers.GetStream)
 	router.GET("/stream", h.GetStream)
 
 	router.PUT("/log-level/:level", log.SetLogLevel)
