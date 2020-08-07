@@ -23,7 +23,8 @@ import (
 )
 
 type Handlers struct {
-	ConfigService data.ConfigService
+	ConfigService     data.ConfigService
+	ControlConfigPath string
 }
 
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
@@ -36,7 +37,7 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 	}
 	if stream.Secret != "" {
 		// token is everything after the base url
-		token, err := h.generateToken(stream)
+		token, err := h.generateToken(streamURL, stream)
 		if err != nil {
 			log.L.Errorf("error generating secure token: %s", err.Error())
 			return c.String(http.StatusInternalServerError, err.Error())
@@ -131,29 +132,27 @@ func (h *Handlers) GetStream(ctx echo.Context) error {
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
-func (h *Handlers) generateToken(s data.Stream) (string, error) {
-	hash := sha256.New()
-	duration, err := time.ParseDuration(s.Duration)
+func (h *Handlers) generateToken(streamURL string, stream data.Stream) (string, error) {
+	duration, err := time.ParseDuration(stream.Duration)
 	if err != nil {
-		log.L.Errorf("error parsing duration from couch doc: %s", err.Error())
-		return "", err
+		return "", fmt.Errorf("unable to parse stream duration: %w", err)
 	}
-	startTime := time.Now().UTC()
-	log.L.Infof("unix time: %v", startTime.Unix())
-	endTime := startTime.Add(duration)
-	start := startTime.Unix()
-	end := endTime.Unix()
-	url := fmt.Sprintf("%s?%s&%sendtime=%d&%sstarttime=%d", s.URL, s.Secret, s.QueryPrefix, end, s.QueryPrefix, start)
+
+	start := time.Now().UTC()
+	end := start.Add(duration)
+
+	url := fmt.Sprintf("%s?%s&%sendtime=%d&%sstarttime=%d", streamURL, stream.Secret, stream.QueryPrefix, end.Unix(), stream.QueryPrefix, start.Unix())
+
 	input := strings.NewReader(url)
+	hash := sha256.New()
 
 	if _, err := io.Copy(hash, input); err != nil {
-		log.L.Errorf("error creating the hash: %s", err.Error())
-		return "", err
+		return "", fmt.Errorf("unable to copy url to hash")
 	}
 
 	finalHash := string(base64.StdEncoding.EncodeToString(hash.Sum(nil)))
 	finalHash = strings.ReplaceAll(finalHash, "+", "-")
 	finalHash = strings.ReplaceAll(finalHash, "/", "_")
-	return fmt.Sprintf("?%sstarttime=%d&%sendtime=%d&%shash=%s", s.QueryPrefix, start, s.QueryPrefix,
-		end, s.QueryPrefix, finalHash), nil
+
+	return fmt.Sprintf("?%sstarttime=%d&%sendtime=%d&%shash=%s", stream.QueryPrefix, start.Unix(), stream.QueryPrefix, end.Unix(), stream.QueryPrefix, finalHash), nil
 }

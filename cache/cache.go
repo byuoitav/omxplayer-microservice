@@ -10,64 +10,99 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-type StreamCache struct {
-	Streams []data.Stream
+const (
+	_bucket = "streams"
+)
+
+type configService struct {
+	configService data.ConfigService
+	db            *bolt.DB
 }
 
-type ConfigService struct {
-	ConfigService data.ConfigService
-	DB            *bolt.DB
-}
-
-func (c *ConfigService) GetStreamConfig(ctx context.Context, streamURL string) (data.Stream, error) {
-	stream, err := c.ConfigService.GetStreamConfig(ctx, streamURL)
+func New(cs data.ConfigService, path string) (data.ConfigService, error) {
+	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
-		//check the cache
-		err := c.DB.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("STREAMS"))
-			if b == nil {
-				return fmt.Errorf("stream bucket does not exist")
-			}
-
-			bytes := b.Get([]byte(streamURL))
-			if bytes == nil {
-				return fmt.Errorf("employee not in cache")
-			}
-
-			if err := json.Unmarshal(bytes, &stream); err != nil {
-				return err
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			log.L.Errorf("unable to find stream in cache: %s", err.Error())
-			return data.Stream{}, fmt.Errorf("unable to find stream in cache: %s", err.Error())
-		}
-
-		return stream, nil
+		return nil, fmt.Errorf("unable to open cache: %w", err)
 	}
 
-	//store in cache
-	err = c.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("STREAMS"))
-
-		bytes, err := json.Marshal(stream)
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(_bucket))
 		if err != nil {
-			log.L.Errorf("unable to marshal stream %s: %s", streamURL, err.Error())
-			return fmt.Errorf("unable to marshal stream %s: %s", streamURL, err.Error())
-		}
-
-		if err = b.Put([]byte(streamURL), bytes); err != nil {
-			log.L.Errorf("unable to cache stream %s: %s", streamURL, err.Error())
-			return fmt.Errorf("unable to cache stream %s: %s", streamURL, err.Error())
+			return err
 		}
 
 		return nil
 	})
 	if err != nil {
-		return data.Stream{}, err
+		return nil, fmt.Errorf("unable to initialize cache: %w", err)
+	}
+
+	return &configService{
+		configService: cs,
+		db:            db,
+	}, nil
+}
+
+func (c *configService) GetStreamConfig(ctx context.Context, streamURL string) (data.Stream, error) {
+	stream, err := c.configService.GetStreamConfig(ctx, streamURL)
+	if err != nil {
+		return c.streamConfigFromCache(ctx, streamURL)
+	}
+
+	if err := c.cacheStream(ctx, streamURL, stream); err != nil {
+		log.L.Warnf("unable to cache stream %q: %s", streamURL, err)
+	}
+
+	return stream, nil
+}
+
+func (c *configService) cacheStream(ctx context.Context, streamURL string, stream data.Stream) error {
+	err := c.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(_bucket))
+		if b == nil {
+			return fmt.Errorf("stream bucket does not exist")
+		}
+
+		bytes, err := json.Marshal(stream)
+		if err != nil {
+			return fmt.Errorf("unable to marshal stream: %w", err)
+		}
+
+		if err = b.Put([]byte(streamURL), bytes); err != nil {
+			return fmt.Errorf("unable to put stream: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *configService) streamConfigFromCache(ctx context.Context, streamURL string) (data.Stream, error) {
+	var stream data.Stream
+
+	err := c.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(_bucket))
+		if b == nil {
+			return fmt.Errorf("stream bucket does not exist")
+		}
+
+		bytes := b.Get([]byte(streamURL))
+		if bytes == nil {
+			return fmt.Errorf("stream not in cache")
+		}
+
+		if err := json.Unmarshal(bytes, &stream); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return stream, fmt.Errorf("unable to get stream from cache: %w", err)
 	}
 
 	return stream, nil

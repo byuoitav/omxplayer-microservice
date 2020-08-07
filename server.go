@@ -11,63 +11,38 @@ import (
 
 	_ "github.com/go-kivik/couchdb/v3"
 	kivik "github.com/go-kivik/kivik/v3"
-	bolt "go.etcd.io/bbolt"
 
 	"github.com/byuoitav/common"
 	"github.com/byuoitav/common/log"
 )
 
 func main() {
-	port := ":8032"
-	router := common.NewRouter()
-
-	router.Static("/", "web")
-
 	client, err := kivik.New("couch", fmt.Sprintf("https://%s:%s@%s", os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_ADDRESS")))
 	if err != nil {
-		log.L.Errorf("error connecting to couch: %s", err.Error())
-		return
+		log.L.Fatalf("error connecting to couch: %s", err)
 	}
 
-	c := couch.ConfigService{
+	couch := &couch.ConfigService{
 		Client:         client,
 		StreamConfigDB: "stream-configs",
 	}
 
-	dbLoc := os.Getenv("CACHE_DATABASE_LOCATION")
-	db, err := bolt.Open(dbLoc, 0600, nil)
+	cache, err := cache.New(couch, os.Getenv("CACHE_DATABASE_LOCATION"))
 	if err != nil {
-		log.L.Errorf("error creating cache: %s", err.Error())
-		return
-	}
-
-	err = db.Update(func(tx *bolt.Tx) error {
-		log.L.Debugf("Checking if Stream Bucket Exists")
-		_, err := tx.CreateBucketIfNotExists([]byte("STREAMS"))
-		if err != nil {
-			return fmt.Errorf("error creating stream bucket: %s", err.Error())
-		}
-
-		return nil
-	})
-	if err != nil {
-		log.L.Errorf("could not create db bucket: %s", err.Error())
-		return
-	}
-
-	config := cache.ConfigService{
-		ConfigService: &c,
-		DB:            db,
+		log.L.Fatalf("unable to build cache: %s", err)
 	}
 
 	h := handlers.Handlers{
-		ConfigService: &config,
+		ConfigService:     cache,
+		ControlConfigPath: "./control-config.json",
 	}
 
-	router.GET("/control", h.ControlPage)
-	// write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))
-	// write.GET("/stream/:streamURL", handlers.PlayStream)
-	// write.GET("/stream/stop", handlers.StopStream)
+	port := ":8032"
+	router := common.NewRouter()
+
+	router.Static("/", "web")
+	router.GET("/control", h.ControlPageHandler("./static/control.html"))
+
 	router.GET("/stream/:streamURL", h.PlayStream)
 	router.GET("/stream/stop", h.StopStream)
 	router.GET("/stream", h.GetStream)

@@ -2,11 +2,15 @@ package couch
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/omxplayer-microservice/data"
 	_ "github.com/go-kivik/couchdb/v3"
 	kivik "github.com/go-kivik/kivik/v3"
+)
+
+const (
+	_streamConfigDoc = "streams"
 )
 
 type ConfigService struct {
@@ -14,18 +18,17 @@ type ConfigService struct {
 	StreamConfigDB string
 }
 
+type streamConfig struct {
+	Streams map[string]data.Stream `json:"streams"`
+}
+
 func (c *ConfigService) GetStreamConfig(ctx context.Context, streamURL string) (data.Stream, error) {
-	var config data.StreamConfig
+	var config streamConfig
 
 	db := c.Client.DB(ctx, c.StreamConfigDB)
 	if err := db.Get(ctx, "streams").ScanDoc(&config); err != nil {
-		log.L.Errorf("error getting stream config doc: %s", err)
-		return data.Stream{}, err
+		return data.Stream{}, fmt.Errorf("unable to get stream configs: %w", err)
 	}
 
-	if s, ok := config.Streams[streamURL]; ok {
-		return s, nil
-	}
-
-	return data.Stream{}, nil
+	return config.Streams[streamURL], nil
 }

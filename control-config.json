@@ -1,0 +1,16 @@
+{
+	"streams": [
+		{
+			"name": "one",
+			"url": "hi.com"
+		},
+		{
+			"name": "five",
+			"url": "example.com"
+		},
+		{
+			"name": "hhello",
+			"url": "bye.com"
+		}
+	]
+}
