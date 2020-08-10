@@ -2,12 +2,61 @@
 
 <head>
 	<title>Stream Control</title>
+	<style>
+	@media only screen and (orientation: landscape) {
+		.stream-container {
+			justify-content: space-evenly;
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			overflow: visible;
+			align-content: space-evenly;
+			margin-top: -30px;
+		}
+		.stream {
+			width: 26vw;
+			height: 130px;
+			margin-top: 40px
+			{{/* margin-left: 50px */}}
+		}
+		.text {
+			font-size: 2em;
+			line-height: .5;
+		}
+	}
+
+	@media only screen and (orientation: portrait) {
+		.stream-container {
+			justify-content: space-evenly;
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			overflow: visible;
+			align-content: space-evenly;
+		}
+		.stream {
+			width: 37vw;
+			height: 12vh;
+			margin-top: 40px;
+		}
+		.text {
+			font-size: 2.7em;
+			line-height: .5;
+		}
+	}
+	</style>
 </head>
 
 <body>
-	{{for stream := .Streams}}
-	<div>{{stream}}</div>
+	<div class="stream-container">
+	{{range .Streams}}
+	<button class="stream" onClick="{{.playStream .URL}}">
+		<div class="text">
+			<p>{{.Name}}/{{.Selected}}</p>
+		</div>
+	</button>
 	{{end}}
+	</div>
 </body>
 
 </html>
