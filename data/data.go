@@ -9,6 +9,7 @@ type ConfigService interface {
 }
 
 type Stream struct {
+	URL         string `json:"url"`
 	Secret      string `json:"secret"`
 	QueryPrefix string `json:"queryPrefix"`
 	Duration    string `json:"duration"`

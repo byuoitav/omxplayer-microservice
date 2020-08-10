@@ -46,7 +46,13 @@ func New(cs data.ConfigService, path string) (data.ConfigService, error) {
 func (c *configService) GetStreamConfig(ctx context.Context, streamURL string) (data.Stream, error) {
 	stream, err := c.configService.GetStreamConfig(ctx, streamURL)
 	if err != nil {
-		return c.streamConfigFromCache(ctx, streamURL)
+		stream, cacheErr := c.streamConfigFromCache(ctx, streamURL)
+		if cacheErr != nil {
+			log.L.Warnf("unable to get stream %q from cache: %s", streamURL, cacheErr)
+			return stream, err
+		}
+
+		return stream, nil
 	}
 
 	if err := c.cacheStream(ctx, streamURL, stream); err != nil {
@@ -102,7 +108,7 @@ func (c *configService) streamConfigFromCache(ctx context.Context, streamURL str
 		return nil
 	})
 	if err != nil {
-		return stream, fmt.Errorf("unable to get stream from cache: %w", err)
+		return stream, err
 	}
 
 	return stream, nil

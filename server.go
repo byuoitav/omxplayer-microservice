@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/byuoitav/omxplayer-microservice/cache"
@@ -17,7 +17,15 @@ import (
 )
 
 func main() {
-	client, err := kivik.New("couch", fmt.Sprintf("https://%s:%s@%s", os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_ADDRESS")))
+	log.SetLevel("info")
+
+	couchURL, err := url.Parse(os.Getenv("DB_ADDRESS"))
+	if err != nil {
+		log.L.Fatalf("invalid couch address: %s", err)
+	}
+
+	couchURL.User = url.UserPassword(os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"))
+	client, err := kivik.New("couch", couchURL.String())
 	if err != nil {
 		log.L.Fatalf("error connecting to couch: %s", err)
 	}
@@ -34,7 +42,7 @@ func main() {
 
 	h := handlers.Handlers{
 		ConfigService:     cache,
-		ControlConfigPath: "./control-config.json",
+		ControlConfigPath: os.Getenv("CONTROL_CONFIG_PATH"),
 	}
 
 	port := ":8032"

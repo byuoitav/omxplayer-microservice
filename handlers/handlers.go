@@ -32,18 +32,15 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 	streamURL := c.Param("streamURL")
 
 	stream, err := h.ConfigService.GetStreamConfig(c.Request().Context(), streamURL)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	if stream.Secret != "" {
+	if err == nil && stream.Secret != "" {
 		// token is everything after the base url
-		token, err := h.generateToken(streamURL, stream)
+		token, err := h.generateToken(stream)
 		if err != nil {
 			log.L.Errorf("error generating secure token: %s", err.Error())
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
+
 		log.L.Infof("generated secure token: %s\n", token)
-		// add the token to the base url
 		streamURL += token
 	}
 
@@ -132,7 +129,7 @@ func (h *Handlers) GetStream(ctx echo.Context) error {
 	return ctx.JSON(http.StatusInternalServerError, "Stream player is not running or is not ready to receive commands")
 }
 
-func (h *Handlers) generateToken(streamURL string, stream data.Stream) (string, error) {
+func (h *Handlers) generateToken(stream data.Stream) (string, error) {
 	duration, err := time.ParseDuration(stream.Duration)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse stream duration: %w", err)
@@ -141,8 +138,7 @@ func (h *Handlers) generateToken(streamURL string, stream data.Stream) (string, 
 	start := time.Now().UTC()
 	end := start.Add(duration)
 
-	url := fmt.Sprintf("%s?%s&%sendtime=%d&%sstarttime=%d", streamURL, stream.Secret, stream.QueryPrefix, end.Unix(), stream.QueryPrefix, start.Unix())
-
+	url := fmt.Sprintf("%s?%s&%sendtime=%d&%sstarttime=%d", stream.URL, stream.Secret, stream.QueryPrefix, end.Unix(), stream.QueryPrefix, start.Unix())
 	input := strings.NewReader(url)
 	hash := sha256.New()
 

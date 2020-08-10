@@ -34,12 +34,12 @@ build: deps
 
 	@echo
 	@echo Building for linux-arm...
-	@env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -v -o ./dist/${NAME}-linux-arm ${PKG}
+	@env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -v -o ./dist/${NAME} ${PKG}
 
 	@echo Building deployment tarball
 	@cp -r web ./dist/files/
 	@cp -r static ./dist/files/
-	@cd ./dist && tar -czf ${NAME}.tar.gz ${NAME}-linux-arm files
+	@cd ./dist && tar -czf ${NAME}.tar.gz ${NAME} files
 
 	@echo
 	@echo Build output is located in ./dist/.

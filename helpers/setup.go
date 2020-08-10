@@ -84,7 +84,8 @@ func deleteOmxDbusFiles() error {
 }
 
 func runOmxplayer(stream string) error {
-	cmd := exec.Command("omxplayer", stream)
+	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
+	cmd := exec.Command("omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), stream)
 	return cmd.Start()
 }
 
