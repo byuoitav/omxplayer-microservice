@@ -2,6 +2,8 @@
 
 <head>
 	<title>Stream Control</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
 	<style>
 		@media only screen and (orientation: landscape) {
 			.stream-container {
@@ -11,10 +13,9 @@
 				flex-wrap: wrap;
 				overflow: visible;
 				align-content: space-evenly;
-				margin-top: -30px;
 			}
 
-			.stream {
+			.btn {
 				width: 26vw;
 				height: 130px;
 
@@ -26,7 +27,7 @@
 				line-height: .5;
 			}
 
-			.selected {
+			.btn-info {
 				width: 26vw;
 				height: 130px;
 
@@ -45,7 +46,7 @@
 				align-content: space-evenly;
 			}
 
-			.stream {
+			.btn {
 				width: 37vw;
 				height: 12vh;
 				margin-top: 40px;
@@ -56,7 +57,7 @@
 				line-height: .5;
 			}
 
-			.selected {
+			.btn-info {
 				width: 37vw;
 				height: 12vh;
 
@@ -67,9 +68,9 @@
 	</style>
 
 	<script>
-		let CurrStream = {{.CurrStreamURL}}
+		let CurStream = {{.CurStreamURL}}
 		function selectStream(name, url) {
-			console.log(CurrStream)
+			console.log(CurStream)
 			const Http = new XMLHttpRequest();
 			url = "http://localhost:8032/stream/" + url;
 			Http.open("GET", url);
@@ -77,19 +78,16 @@
 			Http.onreadystatechange = (e) => {
 				console.log(Http.responseText)
 			}
-			setCurrStream(name)
-			console.log(CurrStream)
+			setCurStream(name)
 		}
 
-		function setCurrStream(name) {
-			CurrStream = name;
-			var selected = document.querySelectorAll(".selected")
+		function setCurStream(name) {
+			CurStream = name;
+			var selected = document.querySelectorAll(".btn-info")
 			for (i = 0; i < selected.length; i++) {
-				selected[i].classList.remove("selected");
-				selected[i].classList.add("stream");
+				selected[i].classList.remove("btn-info");
 			}
-			document.getElementById(name).classList.add("selected");
-			document.getElementById(name).classList.remove("stream");
+			document.getElementById(name).classList.add("btn-info");
 		}
 	</script>
 </head>
@@ -97,16 +95,16 @@
 <body>
 	<div class="stream-container">
 		{{range .Streams}}
-		{{if eq $.CurrStreamURL .Name}}
-		<button id={{.Name}} class="selected" onclick="selectStream({{.Name}}, {{.URL}})">
+		{{if eq $.CurStreamURL .Name}}
+		<button id={{.Name}} class="btn btn-info" onclick="selectStream({{.Name}}, {{.URL}})">
 			<div class="text">
-				<p>{{.Name}}/{{.Selected}}</p>
+				<p>{{.Name}}</p>
 			</div>
 		</button>
 		{{else}}
-		<button id={{.Name}} class="stream" onclick="selectStream({{.Name}}, {{.URL}})">
+		<button id={{.Name}} class="btn" onclick="selectStream({{.Name}}, {{.URL}})">
 			<div class="text">
-				<p>{{.Name}}/{{.Selected}}</p>
+				<p>{{.Name}}</p>
 			</div>
 		</button>
 		{{end}}
