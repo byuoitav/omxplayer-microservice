@@ -1,77 +1,64 @@
-# vars
-ORG=$(shell echo $(CIRCLE_PROJECT_USERNAME))
-BRANCH=$(shell echo $(CIRCLE_BRANCH))
-NAME=$(shell echo $(CIRCLE_PROJECT_REPONAME))
+NAME := omxplayer-microservice
+OWNER := byuoitav
+PKG := github.com/${OWNER}/${NAME}
 
-ifeq ($(NAME),)
-NAME := $(shell basename "$(PWD)")
+COMMIT_HASH := $(shell git rev-parse --short HEAD)
+TAG := $(shell git rev-parse --short HEAD)
+ifneq ($(shell git describe --exact-match --tags HEAD 2> /dev/null),)
+	TAG = $(shell git describe --exact-match --tags HEAD)
 endif
 
-ifeq ($(ORG),)
-ORG=byuoitav
-endif
+PRD_TAG_REGEX := "v[0-9]+\.[0-9]+\.[0-9]+"
+DEV_TAG_REGEX := "v[0-9]+\.[0-9]+\.[0-9]+-.+"
 
-ifeq ($(BRANCH),)
-BRANCH:= $(shell git rev-parse --abbrev-ref HEAD)
-endif
+# go stuff
+PKG_LIST := $(shell go list ${PKG}/...)
 
-# go
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
-VENDOR=gvt fetch -branch $(BRANCH)
+.PHONY: all deps build test test-cov clean
 
-all: deploy clean
-
-build:
-	env GOOS=linux GOARCH=arm $(GOBUILD) -o $(NAME) -v
+all: clean build
 
 test:
-	$(GOTEST) -v -race $(go list ./... | grep -v /vendor/)
+	@go test -coverprofile=coverage.txt -covermode=atomic ${PKG_LIST}
 
-clean:
-ifeq "$(BRANCH)" "master"
-	$(eval BRANCH=development)
-endif
-	$(GOCLEAN)
-	rm -f $(NAME)
-	rm -f $(BRANCH).tar.gz
-	rm -rf files/
-	rm -rf vendor/
-ifeq "$(BRANCH)" "development"
-	$(eval BRANCH=master)
-endif
+lint:
+	@golangci-lint run --tests=false
 
 deps:
-ifneq "$(BRANCH)" "master"
-	# put vendored packages in here
-	gvt fetch -tag v3.3.10 github.com/labstack/echo
-	$(VENDOR) github.com/byuoitav/common
-endif
-	$(GOGET) -d -v
+	@echo Downloading dependencies...
+	@go mod download
 
-deploy: $(NAME) version.txt
-ifeq "$(BRANCH)" "master"
-	$(eval BRANCH=development)
-endif
+build: deps
+	@mkdir -p dist
+	@mkdir -p dist/files
+
+	@echo
+	@echo Building for linux-arm...
+	@env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -v -o ./dist/${NAME}-linux-arm ${PKG}
+
 	@echo Building deployment tarball
-	@mkdir files
-	@cp version.txt files/
-	@cp -r web files/
+	@cp -r web ./dist/files/
+	@cp -r static ./dist/files/
+	@cd ./dist && tar -czf ${NAME}.tar.gz ${NAME}-linux-arm files
 
-	@tar -czf $(BRANCH).tar.gz $(NAME) files
+	@echo
+	@echo Build output is located in ./dist/.
 
+deploy: clean build
+ifneq ($(shell echo ${TAG} | grep -x -E ${DEV_TAG_REGEX}),)
 	@echo Getting current doc revision
-	$(eval rev=$(shell curl -s -n -X GET -u ${DB_USERNAME}:${DB_PASSWORD} "${DB_ADDRESS}/deployment-information/$(NAME)" | cut -d, -f2 | cut -d\" -f4))
+	@$(eval rev=$(shell curl -s -n -X GET -u ${DB_USERNAME}:${DB_PASSWORD} "${DB_ADDRESS}/deployment-information/${NAME}" | cut -d, -f2 | cut -d\" -f4))
 
-	@echo Pushing zip up to couch
-	@curl -X PUT -u ${DB_USERNAME}:${DB_PASSWORD} -H "Content-Type: application/gzip" -H "If-Match: $(rev)" ${DB_ADDRESS}/deployment-information/$(NAME)/$(BRANCH).tar.gz --data-binary @$(BRANCH).tar.gz
-ifeq "$(BRANCH)" "development"
-	$(eval BRANCH=master)
+	@echo Pushing tar up to couch
+	@curl -X PUT -u ${DB_USERNAME}:${DB_PASSWORD} -H "Content-Type: application/gzip" -H "If-Match: $(rev)" ${DB_ADDRESS}/deployment-information/${NAME}/development.tar.gz --data-binary @./dist/${NAME}.tar.gz
+else ifneq ($(shell echo ${TAG} | grep -x -E ${PRD_TAG_REGEX}),)
+	@echo Getting current doc revision
+	@$(eval rev=$(shell curl -s -n -X GET -u ${DB_USERNAME}:${DB_PASSWORD} "${DB_ADDRESS}/deployment-information/${NAME}" | cut -d, -f2 | cut -d\" -f4))
+
+	@echo Pushing tar up to couch
+	@curl -X PUT -u ${DB_USERNAME}:${DB_PASSWORD} -H "Content-Type: application/gzip" -H "If-Match: $(rev)" ${DB_ADDRESS}/deployment-information/${NAME}/production.tar.gz --data-binary @./dist/${NAME}.tar.gz
 endif
 
-### deps
-$(NAME):
-	$(MAKE) build
+clean:
+	@go clean
+	@rm -rf ./dist/
