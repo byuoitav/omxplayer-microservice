@@ -14,6 +14,7 @@ require (
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/sevenNt/echo-pprof v0.1.0 // indirect
+	github.com/stretchr/testify v1.4.0
 	github.com/valyala/fasttemplate v1.2.0 // indirect
 	go.etcd.io/bbolt v1.3.5
 	go.uber.org/zap v1.15.0 // indirect
