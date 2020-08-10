@@ -3,59 +3,70 @@
 <head>
 	<title>Stream Control</title>
 	<style>
-	@media only screen and (orientation: landscape) {
-		.stream-container {
-			justify-content: space-evenly;
-			display: flex;
-			align-items: center;
-			flex-wrap: wrap;
-			overflow: visible;
-			align-content: space-evenly;
-			margin-top: -30px;
-		}
-		.stream {
-			width: 26vw;
-			height: 130px;
-			margin-top: 40px
-			{{/* margin-left: 50px */}}
-		}
-		.text {
-			font-size: 2em;
-			line-height: .5;
-		}
-	}
+		@media only screen and (orientation: landscape) {
+			.stream-container {
+				justify-content: space-evenly;
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+				overflow: visible;
+				align-content: space-evenly;
+				margin-top: -30px;
+			}
 
-	@media only screen and (orientation: portrait) {
-		.stream-container {
-			justify-content: space-evenly;
-			display: flex;
-			align-items: center;
-			flex-wrap: wrap;
-			overflow: visible;
-			align-content: space-evenly;
+			.stream {
+				width: 26vw;
+				height: 130px;
+
+				margin-top: 40px;
+				/* margin-left: 50px */
+			}
+
+			.text {
+				font-size: 2em;
+				line-height: .5;
+			}
 		}
-		.stream {
-			width: 37vw;
-			height: 12vh;
-			margin-top: 40px;
+
+		@media only screen and (orientation: portrait) {
+			.stream-container {
+				justify-content: space-evenly;
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+				overflow: visible;
+				align-content: space-evenly;
+			}
+
+			.stream {
+				width: 37vw;
+				height: 12vh;
+				margin-top: 40px;
+			}
+
+			.text {
+				font-size: 2.7em;
+				line-height: .5;
+			}
 		}
-		.text {
-			font-size: 2.7em;
-			line-height: .5;
-		}
-	}
 	</style>
+
+	<script>
+		function selectStream(url) {
+			console.log("url", url);
+		}
+	</script>
 </head>
 
 <body>
 	<div class="stream-container">
-	{{range .Streams}}
-	<button class="stream">
-		<div class="text">
-			<p>{{.Name}}/{{.Selected}}</p>
-		</div>
-	</button>
-	{{end}}
+		{{range .Streams}}
+		<button class="stream" onclick="selectStream({{.URL}})">
+			<div class="text">
+				<p>{{.Name}}/{{.Selected}}</p>
+			</div>
+		</button>
+		{{end}}
 	</div>
 </body>
 

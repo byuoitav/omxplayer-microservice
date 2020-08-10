@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/byuoitav/omxplayer-microservice/helpers"
 	"github.com/labstack/echo"
 )
 
@@ -43,10 +42,11 @@ func (h *Handlers) ControlPageHandler(path string) echo.HandlerFunc {
 		}
 
 		var currStreamURL string
-		conn, err := helpers.ConnectToDbus()
-		if err == nil {
-			currStreamURL, _ = helpers.GetStream(conn)
-		}
+		// TODO add back in
+		//conn, err := helpers.ConnectToDbus()
+		//if err == nil {
+		//	currStreamURL, _ = helpers.GetStream(conn)
+		//}
 
 		var tmplData controlTemplateData
 		for _, stream := range config.Streams {
