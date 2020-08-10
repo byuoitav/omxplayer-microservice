@@ -19,12 +19,19 @@
 				height: 130px;
 
 				margin-top: 40px;
-				/* margin-left: 50px */
 			}
 
 			.text {
 				font-size: 2em;
 				line-height: .5;
+			}
+
+			.selected {
+				width: 26vw;
+				height: 130px;
+
+				margin-top: 40px;
+				border-width: medium;
 			}
 		}
 
@@ -48,12 +55,41 @@
 				font-size: 2.7em;
 				line-height: .5;
 			}
+
+			.selected {
+				width: 37vw;
+				height: 12vh;
+
+				margin-top: 40px;
+				border-width: medium;
+			}
 		}
 	</style>
 
 	<script>
-		function selectStream(url) {
-			console.log("url", url);
+		let CurrStream = {{.CurrStreamURL}}
+		function selectStream(name, url) {
+			console.log(CurrStream)
+			const Http = new XMLHttpRequest();
+			url = "http://localhost:8032/stream/" + url;
+			Http.open("GET", url);
+			Http.send();
+			Http.onreadystatechange = (e) => {
+				console.log(Http.responseText)
+			}
+			setCurrStream(name)
+			console.log(CurrStream)
+		}
+
+		function setCurrStream(name) {
+			CurrStream = name;
+			var selected = document.querySelectorAll(".selected")
+			for (i = 0; i < selected.length; i++) {
+				selected[i].classList.remove("selected");
+				selected[i].classList.add("stream");
+			}
+			document.getElementById(name).classList.add("selected");
+			document.getElementById(name).classList.remove("stream");
 		}
 	</script>
 </head>
@@ -61,11 +97,19 @@
 <body>
 	<div class="stream-container">
 		{{range .Streams}}
-		<button class="stream" onclick="selectStream({{.URL}})">
+		{{if eq $.CurrStreamURL .Name}}
+		<button id={{.Name}} class="selected" onclick="selectStream({{.Name}}, {{.URL}})">
 			<div class="text">
 				<p>{{.Name}}/{{.Selected}}</p>
 			</div>
 		</button>
+		{{else}}
+		<button id={{.Name}} class="stream" onclick="selectStream({{.Name}}, {{.URL}})">
+			<div class="text">
+				<p>{{.Name}}/{{.Selected}}</p>
+			</div>
+		</button>
+		{{end}}
 		{{end}}
 	</div>
 </body>

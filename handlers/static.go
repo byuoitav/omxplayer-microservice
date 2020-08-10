@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/byuoitav/omxplayer-microservice/helpers"
 	"github.com/labstack/echo"
 )
 
@@ -18,7 +19,8 @@ type controlConfig struct {
 }
 
 type controlTemplateData struct {
-	Streams []controlTemplateDataStream
+	Streams       []controlTemplateDataStream
+	CurrStreamURL string
 }
 
 type controlTemplateDataStream struct {
@@ -43,10 +45,10 @@ func (h *Handlers) ControlPageHandler(path string) echo.HandlerFunc {
 
 		var currStreamURL string
 		// TODO add back in
-		//conn, err := helpers.ConnectToDbus()
-		//if err == nil {
-		//	currStreamURL, _ = helpers.GetStream(conn)
-		//}
+		conn, err := helpers.ConnectToDbus()
+		if err == nil {
+			currStreamURL, _ = helpers.GetStream(conn)
+		}
 
 		var tmplData controlTemplateData
 		for _, stream := range config.Streams {
@@ -56,6 +58,7 @@ func (h *Handlers) ControlPageHandler(path string) echo.HandlerFunc {
 				Selected: currStreamURL == stream.URL,
 			})
 		}
+		tmplData.CurrStreamURL = currStreamURL
 
 		if err := tmpl.Execute(c.Response().Writer, tmplData); err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintf("unable to execute template: %s", err))
