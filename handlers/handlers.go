@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"crypto/sha256"
@@ -25,6 +26,8 @@ import (
 type Handlers struct {
 	ConfigService     data.ConfigService
 	ControlConfigPath string
+
+	omxMu sync.Mutex
 }
 
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
@@ -50,9 +53,13 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	// to make sure two go routines don't start omxplayer at the same time
+	// and make two instances of it
+	h.omxMu.Lock()
+	defer h.omxMu.Unlock()
+
 	log.L.Infof("Playing stream %s", streamURL)
 
-	//Open new connection to dbus
 	conn, err := helpers.ConnectToDbus()
 	if err != nil {
 		log.L.Debug("Can't open dbus connection, starting new stream player")
@@ -67,7 +74,6 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 	}
 
 	log.L.Debug("Reconnected to dbus, now switching stream")
-
 	if err := h.switchStream(streamURL, conn); err != nil {
 		log.L.Errorf("Error when switching stream: %s", err.Error())
 		return c.String(http.StatusInternalServerError, err.Error())

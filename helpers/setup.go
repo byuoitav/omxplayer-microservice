@@ -23,17 +23,22 @@ const (
 
 //StartOMX starts a new instance of the omxplayer
 func StartOMX(streamURL string) error {
-	log.L.Debug("Removing dbus files")
-	err := deleteOmxDbusFiles()
-	if err != nil {
-		return fmt.Errorf("Failed to remove omxplayer dbus files | %s", err.Error())
+	if err := deleteOmxDbusFiles(); err != nil {
+		return fmt.Errorf("unable to delete dbus files: %s", err)
 	}
 
-	log.L.Infof("Starting omxplayer...")
-	err = runOmxplayer(streamURL)
-	if err != nil {
-		return fmt.Errorf("Failed to run omxplayer | %s", err.Error())
+	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
+	cmd := exec.Command("omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), streamURL)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("unable to execute command: %s", err)
 	}
+
+	go func() {
+		// clean up the process
+		if err := cmd.Wait(); err != nil {
+			log.L.Warnf("error from omxplayer command: %s", err)
+		}
+	}()
 
 	return nil
 }
@@ -81,12 +86,6 @@ func deleteOmxDbusFiles() error {
 		}
 	}
 	return err
-}
-
-func runOmxplayer(stream string) error {
-	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
-	cmd := exec.Command("omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), stream)
-	return cmd.Start()
 }
 
 func setEnvironmentVariables() error {
