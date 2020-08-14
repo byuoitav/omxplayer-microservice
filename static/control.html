@@ -16,20 +16,17 @@
 			}
 
 			.btn {
-				width: 26vw;
-				height: 130px;
+				width: 34vw;
+				height: 25vh;
 
 				margin-top: 40px;
-			}
-
-			.text {
-				font-size: 1.5em;
+				font-size: 2em;
 				line-height: 1;
 			}
 
 			.btn-info {
-				width: 26vw;
-				height: 130px;
+				width: 34vw;
+				height: 25vh;
 
 				margin-top: 40px;
 				border-width: medium;
@@ -50,9 +47,6 @@
 				width: 37vw;
 				height: 12vh;
 				margin-top: 40px;
-			}
-
-			.text {
 				font-size: 2em;
 				line-height: 1;
 			}
@@ -68,9 +62,7 @@
 	</style>
 
 	<script>
-		let CurStream = {{.CurStreamURL}}
 		function selectStream(name, url) {
-			console.log(CurStream)
 			const Http = new XMLHttpRequest();
 			url = "http://localhost:8032/stream/" + url;
 			Http.open("GET", url);
@@ -78,32 +70,46 @@
 			Http.onreadystatechange = (e) => {
 				console.log(Http.responseText)
 			}
-			setCurStream(name)
-		}
 
-		function setCurStream(name) {
-			CurStream = name;
 			var selected = document.querySelectorAll(".btn-info")
 			for (i = 0; i < selected.length; i++) {
 				selected[i].classList.remove("btn-info");
 			}
 			document.getElementById(name).classList.add("btn-info");
 		}
+
+		
+
+		function stopStream() {
+			const Http = new XMLHttpRequest();
+			url = "http://localhost:8032/stream/stop";
+			Http.open("GET", url);
+			Http.send();
+			Http.onreadystatechange = (e) => {
+				console.log(Http.responseText)
+			}
+			
+			var selected = document.querySelectorAll(".btn-info")
+			for (i = 0; i < selected.length; i++) {
+				selected[i].classList.remove("btn-info");
+			}
+		}
 	</script>
 </head>
 
 <body>
 	<div class="stream-container">
+		<button class="btn btn-danger" onclick="stopStream()">Stop</button>
 		{{range .Streams}}
 		{{if eq $.CurStreamURL .Name}}
 		<button id={{.Name}} class="btn btn-info" onclick="selectStream({{.Name}}, {{.URL}})">
-			<div class="text">
+			<div>
 				<p>{{.Name}}</p>
 			</div>
 		</button>
 		{{else}}
 		<button id={{.Name}} class="btn" onclick="selectStream({{.Name}}, {{.URL}})">
-			<div class="text">
+			<div>
 				<p>{{.Name}}</p>
 			</div>
 		</button>
