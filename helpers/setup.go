@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,15 +22,32 @@ const (
 	userEnvVar            = "USER"
 )
 
+// gross, quick fix! don't call StartOMX from ANYWHERE but handlers.Handlers (the omxMu there must be locked)
+var killPrev chan struct{}
+
 //StartOMX starts a new instance of the omxplayer
 func StartOMX(streamURL string) error {
 	if err := deleteOmxDbusFiles(); err != nil {
 		return fmt.Errorf("unable to delete dbus files: %s", err)
 	}
 
+	select {
+	case killPrev <- struct{}{}:
+	default:
+		killPrev = make(chan struct{})
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		<-killPrev
+		cancel()
+	}()
+
 	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
-	cmd := exec.Command("omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), streamURL)
+	cmd := exec.CommandContext(ctx, "omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), streamURL)
 	if err := cmd.Start(); err != nil {
+		killPrev <- struct{}{}
 		return fmt.Errorf("unable to execute command: %s", err)
 	}
 
@@ -58,13 +76,14 @@ func ConnectToDbus() (*dbus.Conn, error) {
 		return nil, fmt.Errorf("Failed to connect to dbus | %s", err.Error())
 	}
 
-	if err = conn.Auth(nil); err != nil {
+	if err := conn.Auth(nil); err != nil {
 		log.L.Debugf("Dbus auth error | %s", err.Error())
 		conn.Close()
 		conn = nil
 		return nil, fmt.Errorf("Failed to connect to dbus, auth error | %s", err.Error())
 	}
-	if err = conn.Hello(); err != nil {
+
+	if err := conn.Hello(); err != nil {
 		log.L.Debugf("Dbus Hello error | %s", err.Error())
 		conn.Close()
 		conn = nil
