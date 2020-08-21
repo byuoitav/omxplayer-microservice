@@ -6,16 +6,18 @@
    will assume that the lite version has been used
 2. Put the SD card into a Pi with an attached screen of some kind (such as the official 7" touchscreen) and an attached keyboard
    * Note: You may also chose to SSH into the pi instead of attaching a keyboard.
-3. Log into the pi using the default image username (pi) and password (raspberry).
-4. Update the OS to the latest packages
+3. Log into the pi using the default image username (`pi`) and password (`raspberry`).
+4. Change the password
+   * `passwd`
+5. Update the OS to the latest packages
    * `sudo apt update && sudo apt upgrade`
-5. Install OMXPlayer
+6. Install OMXPlayer
    * `sudo apt install omxplayer`
-6. Install i3, Chrome, and related dependencies
+7. Install i3, Chrome, and related dependencies
    * `sudo apt install xserver-xorg xinit i3 chromium-browser`
    * Note: You may chose a different window manager, desktop environment, or browser here.
    We use i3 by default as we will only be showing a webpage in chrome and i3 make that simple.
-7. Create an i3 config file
+8. Create an i3 config file
    * Note: Here is an example config file, you may change whatever you like, though the very last line is what starts chrome
    and points it at the correct page.
    ```text
@@ -189,7 +191,7 @@
    exec chromium-browser --kiosk --incognito --disable-pinch --disable-session-crashed-bubble --overscroll-history-navigation=0 --disable-infobars --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' http://localhost:8032/
    ```
 
-8. Setup Xinit to start i3
+9. Setup Xinit to start i3
    * Write the following to ~/.xinitrc
    ```text
    #!/usr/bin/env bash
@@ -198,7 +200,7 @@
    exec i3
    ```
 
-9. Enable autologin for the pi user
+10. Enable autologin for the pi user
    * Note: You can choose another user here if you wish, though you will need to make sure to setup the user correctly
    * Write the following tile to `/etc/systemd/system/getty@tty1.service.d/autologin.conf`
    ```text
@@ -207,7 +209,7 @@
    ExecStart=-/sbin/agetty --autologin pi --noclear %I 38400 linux
    ```
    
-10. Build the OMXPlayer-Microservice. This can be done in two ways:
+11. Build the OMXPlayer-Microservice. This can be done in two ways:
 	1. Build the service on your local device and then copy the build output to the pi (fastest method)
 		1. Make sure you have the following dependencies installed:
 			* Git
@@ -234,7 +236,7 @@
 		6. Extract the tarball 
 			* `tar -xzvf omxplayer-microservice.tar.gz`
 
-11. Install a systemd service to start omxplayer-microservice on boot (and keep it running)
+12. Install a systemd service to start omxplayer-microservice on boot (and keep it running)
 	* Write the following file to `/etc/systemd/system/omxplayer-microservice.service`
 	```text
 	[Unit]
@@ -253,7 +255,7 @@
 	```
 	* Note: Please make sure to replace the file paths with the path where you have placed the files
 
-12. Define the possible streams
+13. Define the possible streams
 	* Write the control-config file to the location where you untar-ed the files (`{location}/control-config.json`)
 	* Here is an example:
 	```json
@@ -271,13 +273,13 @@
 	}
 	```
 
-13. Restart the pi
+14. Restart the pi
 	* When the pi restarts, it should:
 		* Start the OMXPlayer-Microservice
 		* Start i3
 		* Launch a chrome window pointed at the microservice's webpage
 
-14. Pick a stream to start
+15. Pick a stream to start
 	
 
 
