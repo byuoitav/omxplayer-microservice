@@ -236,7 +236,28 @@
 		6. Extract the tarball 
 			* `tar -xzvf omxplayer-microservice.tar.gz`
 
-12. Install a systemd service to start omxplayer-microservice on boot (and keep it running)
+12. Define the possible streams
+	* Create the control-config file in the location where you untar-ed the files (`{omxplayer location}/control-config.json`)
+	* Here is an example:
+	```json
+	{
+		"streams": [
+			{
+				"name": "First Stream",
+				"url": "https://example.com/stream"
+			},
+			{
+				"name": "Second Stream",
+				"url": "udp://server/stream"
+			}
+		]
+	}
+	```
+
+	* Note: You can place this file wherever you would like, but if you deviate from the location specified above,
+	you will need to change the `CONTROL_CONFIG_PATH` environment variable in the following systemd service file
+
+13. Install a systemd service to start omxplayer-microservice on boot (and keep it running)
 	* Write the following file to `/etc/systemd/system/omxplayer-microservice.service`
 	```text
 	[Unit]
@@ -253,24 +274,6 @@
 	WantedBy=default.target
 	```
 	* Note: Please make sure to replace the file paths with the path where you have placed the files
-
-13. Define the possible streams
-	* Write the control-config file to the location where you untar-ed the files (`{location}/control-config.json`)
-	* Here is an example:
-	```json
-	{
-		"streams": [
-			{
-				"name": "First Stream",
-				"url": "https://example.com/stream"
-			},
-			{
-				"name": "Second Stream",
-				"url": "udp://server/stream"
-			}
-		]
-	}
-	```
 
 14. Restart the pi
 	* When the pi restarts, it should:
