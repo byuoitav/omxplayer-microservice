@@ -45,7 +45,7 @@ func StartOMX(streamURL string) error {
 	}()
 
 	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
-	cmd := exec.CommandContext(ctx, "omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), streamURL)
+	cmd := exec.CommandContext(ctx, "omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), "--adev", "hdmi", streamURL)
 	if err := cmd.Start(); err != nil {
 		killPrev <- struct{}{}
 		return fmt.Errorf("unable to execute command: %s", err)
