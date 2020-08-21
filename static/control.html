@@ -1,0 +1,121 @@
+<html>
+
+<head>
+	<title>Stream Control</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+	<style>
+		@media only screen and (orientation: landscape) {
+			.stream-container {
+				justify-content: space-evenly;
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+				overflow: visible;
+				align-content: space-evenly;
+			}
+
+			.btn {
+				width: 34vw;
+				height: 25vh;
+
+				margin-top: 40px;
+				font-size: 2em;
+				line-height: 1;
+			}
+
+			.btn-info {
+				width: 34vw;
+				height: 25vh;
+
+				margin-top: 40px;
+				border-width: medium;
+			}
+		}
+
+		@media only screen and (orientation: portrait) {
+			.stream-container {
+				justify-content: space-evenly;
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+				overflow: visible;
+				align-content: space-evenly;
+			}
+
+			.btn {
+				width: 37vw;
+				height: 12vh;
+				margin-top: 40px;
+				font-size: 2em;
+				line-height: 1;
+			}
+
+			.btn-info {
+				width: 37vw;
+				height: 12vh;
+
+				margin-top: 40px;
+				border-width: medium;
+			}
+		}
+	</style>
+
+	<script>
+		function selectStream(name, url) {
+			const Http = new XMLHttpRequest();
+			url = "http://localhost:8032/stream/" + url;
+			Http.open("GET", url);
+			Http.send();
+			Http.onreadystatechange = (e) => {
+				console.log(Http.responseText)
+			}
+
+			var selected = document.querySelectorAll(".btn-info")
+			for (i = 0; i < selected.length; i++) {
+				selected[i].classList.remove("btn-info");
+			}
+			document.getElementById(name).classList.add("btn-info");
+		}
+
+		
+
+		function stopStream() {
+			const Http = new XMLHttpRequest();
+			url = "http://localhost:8032/stream/stop";
+			Http.open("GET", url);
+			Http.send();
+			Http.onreadystatechange = (e) => {
+				console.log(Http.responseText)
+			}
+			
+			var selected = document.querySelectorAll(".btn-info")
+			for (i = 0; i < selected.length; i++) {
+				selected[i].classList.remove("btn-info");
+			}
+		}
+	</script>
+</head>
+
+<body>
+	<div class="stream-container">
+		<button class="btn btn-danger" onclick="stopStream()">Stop</button>
+		{{range .Streams}}
+		{{if eq $.CurStreamURL .Name}}
+		<button id={{.Name}} class="btn btn-info" onclick="selectStream({{.Name}}, {{.URL}})">
+			<div>
+				<p>{{.Name}}</p>
+			</div>
+		</button>
+		{{else}}
+		<button id={{.Name}} class="btn" onclick="selectStream({{.Name}}, {{.URL}})">
+			<div>
+				<p>{{.Name}}</p>
+			</div>
+		</button>
+		{{end}}
+		{{end}}
+	</div>
+</body>
+
+</html>
