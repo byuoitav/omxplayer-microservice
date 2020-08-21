@@ -246,7 +246,6 @@
 	WorkingDirectory={Location of untar-ed directory}/files
 	ExecStart={Location of untar-ed directory}/omxplayer-microservice
 	Restart=on-failure
-	Environment="CACHE_DATABASE_LOCATION={Location of untar-ed directory}/cache.db"
 	Environment="CONTROL_CONFIG_PATH={Location of untar-ed directory}/control-config.json"
 	Environment="OMXPLAYER_DISPLAY=2"
 
