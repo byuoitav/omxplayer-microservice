@@ -34,20 +34,22 @@ type Handlers struct {
 func (h *Handlers) PlayStream(c echo.Context) error {
 	streamURL := c.Param("streamURL")
 
-	stream, err := h.ConfigService.GetStreamConfig(c.Request().Context(), streamURL)
-	if err == nil && stream.Secret != "" {
-		// token is everything after the base url
-		token, err := h.generateToken(stream)
-		if err != nil {
-			log.L.Errorf("error generating secure token: %s", err.Error())
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
+	if h.ConfigService != nil {
+		stream, err := h.ConfigService.GetStreamConfig(c.Request().Context(), streamURL)
+		if err == nil && stream.Secret != "" {
+			// token is everything after the base url
+			token, err := h.generateToken(stream)
+			if err != nil {
+				log.L.Errorf("error generating secure token: %s", err.Error())
+				return c.String(http.StatusInternalServerError, err.Error())
+			}
 
-		log.L.Infof("generated secure token: %s\n", token)
-		streamURL += token
+			log.L.Infof("generated secure token: %s\n", token)
+			streamURL += token
+		}
 	}
 
-	streamURL, err = url.QueryUnescape(streamURL)
+	streamURL, err := url.QueryUnescape(streamURL)
 	if err != nil {
 		log.L.Errorf("error getting stream URL: %s", err.Error())
 		return c.String(http.StatusInternalServerError, err.Error())

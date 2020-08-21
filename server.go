@@ -7,6 +7,7 @@ import (
 
 	"github.com/byuoitav/omxplayer-microservice/cache"
 	"github.com/byuoitav/omxplayer-microservice/couch"
+	"github.com/byuoitav/omxplayer-microservice/data"
 	"github.com/byuoitav/omxplayer-microservice/handlers"
 
 	_ "github.com/go-kivik/couchdb/v3"
@@ -19,29 +20,36 @@ import (
 func main() {
 	log.SetLevel("info")
 
-	couchURL, err := url.Parse(os.Getenv("DB_ADDRESS"))
-	if err != nil {
-		log.L.Fatalf("invalid couch address: %s", err)
-	}
+	var configService data.ConfigService
+	dbAddr := os.Getenv("DB_ADDRESS")
+	if len(dbAddr) > 0 {
+		couchURL, err := url.Parse(dbAddr)
+		if err != nil {
+			log.L.Fatalf("invalid couch address: %s", err)
+		}
 
-	couchURL.User = url.UserPassword(os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"))
-	client, err := kivik.New("couch", couchURL.String())
-	if err != nil {
-		log.L.Fatalf("error connecting to couch: %s", err)
-	}
+		couchURL.User = url.UserPassword(os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"))
 
-	couch := &couch.ConfigService{
-		Client:         client,
-		StreamConfigDB: "stream-configs",
-	}
+		client, err := kivik.New("couch", couchURL.String())
+		if err != nil {
+			log.L.Fatalf("error connecting to couch: %s", err)
+		}
 
-	cache, err := cache.New(couch, os.Getenv("CACHE_DATABASE_LOCATION"))
-	if err != nil {
-		log.L.Fatalf("unable to build cache: %s", err)
+		couch := &couch.ConfigService{
+			Client:         client,
+			StreamConfigDB: "stream-configs",
+		}
+
+		configService, err = cache.New(couch, os.Getenv("CACHE_DATABASE_LOCATION"))
+		if err != nil {
+			log.L.Fatalf("unable to build cache: %s", err)
+		}
+
+		log.L.Infof("Successfully connected to config service")
 	}
 
 	h := handlers.Handlers{
-		ConfigService:     cache,
+		ConfigService:     configService,
 		ControlConfigPath: os.Getenv("CONTROL_CONFIG_PATH"),
 	}
 
