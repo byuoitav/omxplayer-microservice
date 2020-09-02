@@ -32,7 +32,7 @@ func New(cs data.ConfigService, path string) (data.ConfigService, error) {
 			return err
 		}
 
-		_, err := tx.CreateBucketIfNotExists([]byte(_deviceBucket))
+		_, err = tx.CreateBucketIfNotExists([]byte(_deviceBucket))
 		if err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ func (c *configService) cacheDevice(ctx context.Context, hostname string, device
 	return nil
 }
 
-func (c *configService) deviceConfigFromCache(ctx context.Context, hostname) (data.Device, error) {
+func (c *configService) deviceConfigFromCache(ctx context.Context, hostname string) (data.Device, error) {
 	var device data.Device
 
 	err := c.db.View(func(tx *bolt.Tx) error {
