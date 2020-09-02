@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -33,6 +34,7 @@ type Handlers struct {
 //PlayStream gets a stream url and attempts to switch the omxplayer output to that stream. If no stream is playing, then a new instance of omxplayer is started.
 func (h *Handlers) PlayStream(c echo.Context) error {
 	streamURL := c.Param("streamURL")
+	var args []string
 
 	if h.ConfigService != nil {
 		stream, err := h.ConfigService.GetStreamConfig(c.Request().Context(), streamURL)
@@ -46,6 +48,14 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 
 			log.L.Infof("generated secure token: %s\n", token)
 			streamURL += token
+		}
+
+		hostname, err := os.Hostname()
+		if err != nil {
+			device, err := h.ConfigService.GetDeviceConfig(c.Request().Context(), hostname)
+			if err != nil {
+				args = device.Args
+			}
 		}
 	}
 
@@ -66,7 +76,7 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 	if err != nil {
 		log.L.Debug("Can't open dbus connection, starting new stream player")
 
-		if err := helpers.StartOMX(streamURL); err != nil {
+		if err := helpers.StartOMX(streamURL, args); err != nil {
 			log.L.Errorf("Error starting stream player: %s", err.Error())
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

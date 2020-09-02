@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	_bucket = "streams"
+	_streamBucket = "streams"
+	_deviceBucket = "devices"
 )
 
 type configService struct {
@@ -26,7 +27,12 @@ func New(cs data.ConfigService, path string) (data.ConfigService, error) {
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(_bucket))
+		_, err := tx.CreateBucketIfNotExists([]byte(_streamBucket))
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte(_deviceBucket))
 		if err != nil {
 			return err
 		}
@@ -64,7 +70,7 @@ func (c *configService) GetStreamConfig(ctx context.Context, streamURL string) (
 
 func (c *configService) cacheStream(ctx context.Context, streamURL string, stream data.Stream) error {
 	err := c.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(_bucket))
+		b := tx.Bucket([]byte(_streamBucket))
 		if b == nil {
 			return fmt.Errorf("stream bucket does not exist")
 		}
@@ -91,7 +97,7 @@ func (c *configService) streamConfigFromCache(ctx context.Context, streamURL str
 	var stream data.Stream
 
 	err := c.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(_bucket))
+		b := tx.Bucket([]byte(_streamBucket))
 		if b == nil {
 			return fmt.Errorf("stream bucket does not exist")
 		}
@@ -112,4 +118,75 @@ func (c *configService) streamConfigFromCache(ctx context.Context, streamURL str
 	}
 
 	return stream, nil
+}
+
+func (c *configService) GetDeviceConfig(ctx context.Context, hostname string) (data.Device, error) {
+	device, err := c.configService.GetDeviceConfig(ctx, hostname)
+	if err != nil {
+		device, cacheErr := c.deviceConfigFromCache(ctx, hostname)
+		if cacheErr != nil {
+			log.L.Warnf("unable to get device %s from cache: %s", hostname, cacheErr)
+			return device, err
+		}
+
+		return device, nil
+	}
+
+	if err := c.cacheDevice(ctx, hostname, device); err != nil {
+		log.L.Warnf("unable to cache device %s: %s", hostname, err)
+	}
+
+	return device, nil
+}
+
+func (c *configService) cacheDevice(ctx context.Context, hostname string, device data.Device) error {
+	err := c.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(_deviceBucket))
+		if b == nil {
+			return fmt.Errorf("device bucket does not exist")
+		}
+
+		bytes, err := json.Marshal(device)
+		if err != nil {
+			return fmt.Errorf("unable to marshal device")
+		}
+
+		if err = b.Put([]byte(hostname), bytes); err != nil {
+			return fmt.Errorf("unable to put device: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *configService) deviceConfigFromCache(ctx context.Context, hostname string) (data.Device, error) {
+	var device data.Device
+
+	err := c.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(_deviceBucket))
+		if b == nil {
+			return fmt.Errorf("device bucket does not exist")
+		}
+
+		bytes := b.Get([]byte(hostname))
+		if bytes == nil {
+			return fmt.Errorf("device not in cache")
+		}
+
+		if err := json.Unmarshal(bytes, &device); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return device, err
+	}
+
+	return device, nil
 }
