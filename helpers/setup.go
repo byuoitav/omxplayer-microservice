@@ -26,7 +26,7 @@ const (
 var killPrev chan struct{}
 
 //StartOMX starts a new instance of the omxplayer
-func StartOMX(streamURL string) error {
+func StartOMX(streamURL string, args []string) error {
 	if err := deleteOmxDbusFiles(); err != nil {
 		return fmt.Errorf("unable to delete dbus files: %s", err)
 	}
@@ -45,7 +45,9 @@ func StartOMX(streamURL string) error {
 	}()
 
 	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
-	cmd := exec.CommandContext(ctx, "omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), "--adev", "hdmi", streamURL)
+	// cmd := exec.CommandContext(ctx, "omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), "--adev", "hdmi", streamURL)
+	args = append(args, streamURL)
+	cmd := exec.CommandContext(ctx, "omxplayer", args...)
 	if err := cmd.Start(); err != nil {
 		killPrev <- struct{}{}
 		return fmt.Errorf("unable to execute command: %s", err)
