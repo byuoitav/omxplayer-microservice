@@ -6,7 +6,7 @@ import (
 
 type ConfigService interface {
 	GetStreamConfig(ctx context.Context, streamURL string) (Stream, error)
-	GetDeviceConfig(ctx context.Context, hostanem string) (Device, error)
+	GetDeviceConfig(ctx context.Context, hostname string) (Device, error)
 }
 
 type Stream struct {

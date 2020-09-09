@@ -51,9 +51,9 @@ func (h *Handlers) PlayStream(c echo.Context) error {
 		}
 
 		hostname, err := os.Hostname()
-		if err != nil {
+		if err == nil {
 			device, err := h.ConfigService.GetDeviceConfig(c.Request().Context(), hostname)
-			if err != nil {
+			if err == nil {
 				args = device.Args
 			}
 		}

@@ -44,8 +44,9 @@ func StartOMX(streamURL string, args []string) error {
 		cancel()
 	}()
 
+	log.L.Infof("Starting omxplayer with args: %v", args)
+
 	// https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md
-	// cmd := exec.CommandContext(ctx, "omxplayer", "--display", os.Getenv("OMXPLAYER_DISPLAY"), "--adev", "hdmi", streamURL)
 	args = append(args, streamURL)
 	cmd := exec.CommandContext(ctx, "omxplayer", args...)
 	if err := cmd.Start(); err != nil {
