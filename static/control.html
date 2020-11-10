@@ -67,9 +67,11 @@
 	</style>
 
 	<script>
+		const Http = new XMLHttpRequest();
+
 		function selectStream(name, url) {
-			const Http = new XMLHttpRequest();
 			url = "http://localhost:8032/stream/" + url;
+			
 			Http.open("GET", url);
 			Http.send();
 			Http.onreadystatechange = (e) => {
@@ -86,7 +88,6 @@
 		
 
 		function stopStream() {
-			const Http = new XMLHttpRequest();
 			url = "http://localhost:8032/stream/stop";
 			Http.open("GET", url);
 			Http.send();
